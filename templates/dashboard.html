@@ -351,12 +351,14 @@
 
         .modal-content {
             background-color: #fefefe;
-            margin: 5% auto;
+            margin: 3% auto;
             padding: 0;
             border: 1px solid #888;
             border-radius: 15px;
-            width: 90%;
-            max-width: 800px;
+            width: 95%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
             animation: slideDown 0.3s ease;
         }
@@ -507,6 +509,7 @@
             <h1>📊 Assessment Dashboard</h1>
             <div class="nav-buttons">
                 <a href="/form" class="btn btn-primary">➕ New Assessment</a>
+                <a href="/logout" class="btn" style="background: #95A5A6; color: white;">🚪 Logout</a>
             </div>
         </div>
 
@@ -547,18 +550,13 @@
                             <th>Name</th>
                             <th>Age</th>
                             <th>Gender</th>
-                            <th>Email</th>
-                            <th>Mobile</th>
-                            <th>BMI</th>
-                            <th>Body Fat %</th>
-                            <th>Date</th>
                             <th>Email Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="assessmentsBody">
                         <tr>
-                            <td colspan="10" class="no-data">No assessments found</td>
+                            <td colspan="5" class="no-data">No assessments found</td>
                         </tr>
                     </tbody>
                 </table>
@@ -631,7 +629,7 @@
             const tbody = document.getElementById('assessmentsBody');
             
             if (!assessments || assessments.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="no-data">No assessments found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data">No assessments found</td></tr>';
                 return;
             }
 
@@ -640,11 +638,6 @@
                     <td><strong>${a.name}</strong></td>
                     <td>${a.age}</td>
                     <td>${a.gender.charAt(0).toUpperCase() + a.gender.slice(1)}</td>
-                    <td>${a.email}</td>
-                    <td>${a.mobile}</td>
-                    <td>${a.bmi}</td>
-                    <td>${a.body_fat_percent}%</td>
-                    <td>${new Date(a.created_at).toLocaleDateString()}</td>
                     <td>
                         ${a.email_sent ? 
                             `<span class="email-status email-sent" title="Email sent on ${a.email_sent_at ? new Date(a.email_sent_at).toLocaleString() : 'Unknown'}">✅</span>` : 
@@ -829,8 +822,8 @@
                                 <div class="inference-value">${assessment.body_fat_percent}% - ${inference.body_fat_status}</div>
                                 <div style="font-size: 0.9em; color: #7F8C8D; margin-top: 8px;">
                                     ${assessment.gender === 'male' ? 
-                                        'Men Reference: <6% Very Low | 6-13% Excellent (Athlete) | 14-17% Good | 18-20% Fair | 21-25% Average | >25% High' :
-                                        'Women Reference: <14% Very Low | 14-20% Excellent (Athlete) | 21-24% Good | 25-27% Fair | 28-32% Average | >32% High'}
+                                        'Men Reference (Lohman 1986 & Nagamine 1972): <10% Low | 10-20% Normal | 20-25% High | ≥25% Very High' :
+                                        'Women Reference (Lohman 1986 & Nagamine 1972): <20% Low | 20-30% Normal | 30-35% High | ≥35% Very High'}
                                 </div>
                             </div>
 
@@ -838,7 +831,7 @@
                                 <strong>Visceral Fat:</strong>
                                 <div class="inference-value">${assessment.visceral_fat_percent} - ${inference.visceral_inference}</div>
                                 <div style="font-size: 0.9em; color: #7F8C8D; margin-top: 8px;">
-                                    Optimal Range: 0-9 | Acceptable: 10-12 | Elevated: 13-15 | High: ≥16
+                                    Reference (OMRON Healthcare): 0-9.5 Normal | 10-14.5 High | 15-30 Very High
                                 </div>
                             </div>
 
@@ -864,7 +857,6 @@
                                         <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Fat %</th>
                                         <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Muscle %</th>
                                         <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Ratio (Fat:Muscle)</th>
-                                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -873,28 +865,24 @@
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.whole_body_subcutaneous}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.whole_body_muscle}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${inference.muscle_distribution.whole_body.ratio}</td>
-                                        <td style="padding: 8px; border: 1px solid #ddd;">${inference.muscle_distribution.whole_body.status}</td>
                                     </tr>
                                     <tr>
                                         <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Trunk</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.trunk_subcutaneous}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.trunk_muscle}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${inference.muscle_distribution.trunk.ratio}</td>
-                                        <td style="padding: 8px; border: 1px solid #ddd;">${inference.muscle_distribution.trunk.status}</td>
                                     </tr>
                                     <tr style="background: #f9f9f9;">
                                         <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Arms</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.arms_subcutaneous}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.arms_muscle}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${inference.muscle_distribution.arms.ratio}</td>
-                                        <td style="padding: 8px; border: 1px solid #ddd;">${inference.muscle_distribution.arms.status}</td>
                                     </tr>
                                     <tr>
                                         <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Legs</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.legs_subcutaneous}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.legs_muscle}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${inference.muscle_distribution.legs.ratio}</td>
-                                        <td style="padding: 8px; border: 1px solid #ddd;">${inference.muscle_distribution.legs.status}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -904,9 +892,11 @@
                             </div>
                         </div>
 
-                        <div class="performance-notes">
+                        <div class="performance-notes" style="margin-top: 20px;">
                             <h4>🏃‍♂️ Performance Notes for Runners/Marathon Athletes:</h4>
-                            <p style="margin-top: 10px; line-height: 1.6;">${inference.performance_notes}</p>
+                            <ul style="margin-top: 10px; line-height: 1.8; list-style-type: disc; padding-left: 25px;">
+                                ${inference.performance_notes.split('\n').filter(note => note.trim()).map(note => `<li>${note.replace(/^[•●■◆▪]-?\s*/, '')}</li>`).join('')}
+                            </ul>
                         </div>
 
                         <div style="margin-top: 20px; padding: 15px; background: #E8F4F8; border-radius: 5px; font-size: 0.9em;">

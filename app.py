@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for
+from functools import wraps
 from config import Config
 from supabase import create_client
 import os
@@ -9,9 +10,23 @@ import math
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.secret_key = os.environ.get('SECRET_KEY', 'powerfuel-secret-key-2026-change-in-production')
 
 # Initialize Supabase client
 supabase = create_client(app.config['SUPABASE_URL'], app.config['SUPABASE_KEY'])
+
+# Admin credentials (in production, use database or environment variables)
+ADMIN_USERNAME = 'admin'
+ADMIN_PASSWORD = 'Powerfuel@123'
+
+# Login required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def calculate_bmi(weight_kg, height_cm):
     """Calculate BMI from weight (kg) and height (cm)"""
@@ -142,33 +157,25 @@ def get_bmi_category_asian_pacific(bmi, age):
         return "Obese II"
 
 def get_body_fat_status(body_fat_percent, gender):
-    """Get consolidated body fat status based on Indian standards"""
+    """Get body fat status based on Lohman 1986 & Nagamine 1972 classification"""
     if gender.lower() == 'male':
-        if body_fat_percent < 6:
-            return "Very Low - Below optimal range (Essential fat only)"
-        elif body_fat_percent <= 13:
-            return "Excellent - Athlete/Competitive range"
-        elif body_fat_percent <= 17:
-            return "Good - Recreational athlete range"
+        if body_fat_percent < 10:
+            return "Low - Below normal range (Lohman 1986)"
         elif body_fat_percent <= 20:
-            return "Fair - Fitness range"
+            return "Normal - Healthy range (Lohman 1986)"
         elif body_fat_percent <= 25:
-            return "Average - Acceptable range"
+            return "High - Above normal (Lohman 1986)"
         else:
-            return "High - Above normal range"
+            return "Very High - Action needed (Lohman 1986)"
     else:  # Female
-        if body_fat_percent < 14:
-            return "Very Low - Below optimal range (Essential fat only)"
-        elif body_fat_percent <= 20:
-            return "Excellent - Athlete/Competitive range"
-        elif body_fat_percent <= 24:
-            return "Good - Recreational athlete range"
-        elif body_fat_percent <= 27:
-            return "Fair - Fitness range"
-        elif body_fat_percent <= 32:
-            return "Average - Acceptable range"
+        if body_fat_percent < 20:
+            return "Low - Below normal range (Lohman 1986)"
+        elif body_fat_percent <= 30:
+            return "Normal - Healthy range (Lohman 1986)"
+        elif body_fat_percent <= 35:
+            return "High - Above normal (Lohman 1986)"
         else:
-            return "High - Above normal range"
+            return "Very High - Action needed (Lohman 1986)"
 
 def analyze_muscle_fat_ratio(subcutaneous, muscle):
     """Analyze subcutaneous fat to muscle mass ratio"""
@@ -195,15 +202,13 @@ def analyze_muscle_fat_ratio(subcutaneous, muscle):
     return ratio_text, status
 
 def get_visceral_fat_inference(visceral_fat):
-    """Get visceral fat inference"""
-    if visceral_fat <= 9:
-        return "Healthy - Optimal range (0-9)"
-    elif visceral_fat <= 12:
-        return "Normal - Acceptable range but monitor"
-    elif visceral_fat <= 15:
-        return "Elevated - Action needed to reduce"
+    """Get visceral fat inference based on OMRON Healthcare standards"""
+    if visceral_fat <= 9.5:
+        return "Normal - Healthy level (OMRON Healthcare)"
+    elif visceral_fat <= 14.5:
+        return "High - Monitor and take action (OMRON Healthcare)"
     else:
-        return "High - Immediate action required"
+        return "Very High - Immediate action required (OMRON Healthcare)"
 
 def generate_runner_inference(assessment):
     """Generate comprehensive inference for runners/marathon athletes"""
@@ -257,7 +262,7 @@ def generate_runner_inference(assessment):
     elif bmi >= 25:
         performance_notes.append("⚠️ Higher BMI may impact running efficiency and joint stress. Weight management recommended.")
     
-    if visceral_fat <= 9:
+    if visceral_fat <= 9.5:
         performance_notes.append("✓ Excellent visceral fat level - optimal for cardiovascular endurance.")
     else:
         performance_notes.append("⚠️ Elevated visceral fat may impact cardiovascular performance and recovery.")
@@ -291,19 +296,47 @@ def generate_runner_inference(assessment):
         'performance_notes': performance_notes
     }
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if 'logged_in' in session:
+        return redirect(url_for('index'))
+    return render_template('login.html')
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    username = data.get('username', '')
+    password = data.get('password', '')
+    
+    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        session['logged_in'] = True
+        session['username'] = username
+        return jsonify({'success': True, 'message': 'Login successful'})
+    else:
+        return jsonify({'success': False, 'message': 'Invalid username or password'}), 401
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def index():
     return render_template('dashboard.html')
 
 @app.route('/form')
+@login_required
 def form():
     return render_template('index.html')
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
     return render_template('dashboard.html')
 
 @app.route('/api/assessments', methods=['GET'])
+@login_required
 def get_assessments():
     try:
         search = request.args.get('search', '')
@@ -329,6 +362,7 @@ def get_assessments():
         }), 500
 
 @app.route('/api/save-assessment', methods=['POST'])
+@login_required
 def save_assessment():
     try:
         data = request.json
@@ -382,6 +416,7 @@ def save_assessment():
         }), 500
 
 @app.route('/api/generate-pdf/<int:assessment_id>')
+@login_required
 def generate_pdf(assessment_id):
     try:
         # Fetch assessment data from Supabase
@@ -402,6 +437,7 @@ def generate_pdf(assessment_id):
         return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
 
 @app.route('/api/send-email/<int:assessment_id>', methods=['POST'])
+@login_required
 def send_email(assessment_id):
     try:
         # Fetch assessment data from Supabase
@@ -438,6 +474,7 @@ def send_email(assessment_id):
         return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
 
 @app.route('/api/calculate-additional', methods=['POST'])
+@login_required
 def calculate_additional():
     """Calculate additional body composition metrics"""
     try:
@@ -461,6 +498,7 @@ def calculate_additional():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/reference-values/<gender>', methods=['GET'])
+@login_required
 def get_reference_values(gender):
     """Get reference values for body composition metrics"""
     try:
@@ -473,6 +511,7 @@ def get_reference_values(gender):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/inference/<int:assessment_id>', methods=['GET'])
+@login_required
 def get_inference(assessment_id):
     """Get inference for a specific assessment"""
     try:
@@ -495,6 +534,7 @@ def get_inference(assessment_id):
         return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
 
 @app.route('/api/delete-assessment/<int:assessment_id>', methods=['DELETE'])
+@login_required
 def delete_assessment(assessment_id):
     """Delete an assessment"""
     try:
