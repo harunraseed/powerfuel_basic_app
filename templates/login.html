@@ -37,6 +37,13 @@
             text-align: center;
         }
 
+        .login-header .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            display: block;
+        }
+
         .login-header h1 {
             font-size: 1.8em;
             margin-bottom: 10px;
@@ -121,6 +128,7 @@
 <body>
     <div class="login-container">
         <div class="login-header">
+            <img src="{{ url_for('static', filename='images/logo_white_bg.png') }}" alt="PowerFuel Logo" class="logo">
             <h1>🔐 PowerFuel</h1>
             <p>Body Composition Assessment System</p>
         </div>

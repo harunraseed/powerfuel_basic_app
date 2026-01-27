@@ -2,10 +2,48 @@ from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image, PageTemplate, Frame
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.pdfgen import canvas
+from reportlab.pdfgen import canvas
 from datetime import datetime
 import os
+
+class WatermarkCanvas(canvas.Canvas):
+    """Custom canvas class to add watermark on every page"""
+    
+    def __init__(self, *args, **kwargs):
+        self.logo_path = kwargs.pop('logo_path', None)
+        canvas.Canvas.__init__(self, *args, **kwargs)
+    
+    def showPage(self):
+        self.draw_watermark()
+        canvas.Canvas.showPage(self)
+    
+    def draw_watermark(self):
+        """Draw watermark logo in the center background of every page"""
+        if self.logo_path and os.path.exists(self.logo_path):
+            # Save the current state
+            self.saveState()
+            
+            # Get page dimensions
+            page_width, page_height = A4
+            
+            # Draw watermark in center with transparency
+            watermark_size = 4 * inch  # Larger watermark
+            x = (page_width - watermark_size) / 2
+            y = (page_height - watermark_size) / 2
+            
+            # Set transparency (0.1 = 10% opacity)
+            self.setFillAlpha(0.08)
+            
+            # Draw the watermark image
+            self.drawImage(self.logo_path, x, y, 
+                          width=watermark_size, height=watermark_size,
+                          mask='auto', preserveAspectRatio=True)
+            
+            # Restore the state
+            self.restoreState()
 
 def generate_body_composition_pdf(assessment):
     """Generate a professional PDF report for body composition assessment"""
@@ -17,10 +55,16 @@ def generate_body_composition_pdf(assessment):
     # Generate filename
     filename = f"{reports_dir}/body_assessment_{assessment['id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     
-    # Create PDF document
+    # Logo path for watermark
+    logo_path = os.path.join(os.path.dirname(__file__), 'static', 'images', 'logo_transparent.png')
+    
+    # Create PDF document with custom canvas
     doc = SimpleDocTemplate(filename, pagesize=A4,
                            rightMargin=72, leftMargin=72,
                            topMargin=72, bottomMargin=18)
+    
+    # Set custom canvas with watermark
+    doc.canvasmaker = lambda *args, **kwargs: WatermarkCanvas(*args, logo_path=logo_path, **kwargs)
     
     # Container for the 'Flowable' objects
     elements = []
@@ -48,6 +92,16 @@ def generate_body_composition_pdf(assessment):
     )
     
     normal_style = styles['Normal']
+    
+    # Add PowerFuel Logo at the top (visible)
+    if os.path.exists(logo_path):
+        try:
+            logo = Image(logo_path, width=1.8*inch, height=1.8*inch)
+            logo.hAlign = 'CENTER'
+            elements.append(logo)
+            elements.append(Spacer(1, 0.15*inch))
+        except Exception as e:
+            print(f"Could not load logo: {e}")
     
     # Title
     title = Paragraph("BODY COMPOSITION ASSESSMENT REPORT", title_style)
@@ -364,7 +418,7 @@ def generate_body_composition_pdf(assessment):
     notes = Paragraph(
         "<b>Notes:</b> This body composition assessment provides valuable insights into your current fitness level. "
         "For marathon runners and athletes, maintaining optimal body composition is crucial for performance. "
-        "Book a consultation with us to improve your performance and achieve your goals through a scientific, evidence-based approach.",
+        "Book a consultation with us by call or message at +91-7397442544 to improve your performance and achieve your goals through a scientific, evidence-based approach.",
         notes_style
     )
     elements.append(notes)

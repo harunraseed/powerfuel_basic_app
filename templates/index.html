@@ -39,6 +39,18 @@
             gap: 20px;
         }
 
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .header-left .logo {
+            width: 80px;
+            height: 80px;
+        }
+
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
@@ -315,10 +327,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <div style="flex: 1;">
-                <h1>🏃‍♂️ Body Composition Assessment</h1>
-                <p>Marathon Runners & Athletes Performance Analysis</p>
-                <p style="font-size: 0.9em; margin-top: 10px;">PowerFuel - The Nutrition Hub</p>
+            <div class="header-left">
+                <img src="{{ url_for('static', filename='images/logo_white_bg.png') }}" alt="PowerFuel Logo" class="logo">
+                <div>
+                    <h1>🏃‍♂️ Body Composition Assessment</h1>
+                    <p>Marathon Runners & Athletes Performance Analysis</p>
+                    <p style="font-size: 0.9em; margin-top: 10px;">PowerFuel - The Nutrition Hub</p>
+                </div>
             </div>
             <div>
                 <a href="/dashboard" style="display: inline-block; padding: 12px 25px; background: white; color: #2C3E50; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; margin-right: 10px;">📊 Dashboard</a>
