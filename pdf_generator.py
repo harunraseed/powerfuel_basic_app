@@ -10,14 +10,16 @@ from datetime import datetime
 import os
 
 class WatermarkCanvas(canvas.Canvas):
-    """Custom canvas class to add watermark on every page"""
+    """Custom canvas class to add watermark and logo on every page"""
     
     def __init__(self, *args, **kwargs):
         self.logo_path = kwargs.pop('logo_path', None)
         canvas.Canvas.__init__(self, *args, **kwargs)
+        self._saved_page_states = []
     
     def showPage(self):
         self.draw_watermark()
+        self.draw_header_logo()
         canvas.Canvas.showPage(self)
     
     def draw_watermark(self):
@@ -40,6 +42,29 @@ class WatermarkCanvas(canvas.Canvas):
             # Draw the watermark image
             self.drawImage(self.logo_path, x, y, 
                           width=watermark_size, height=watermark_size,
+                          mask='auto', preserveAspectRatio=True)
+            
+            # Restore the state
+            self.restoreState()
+    
+    def draw_header_logo(self):
+        """Draw small logo in top right corner of every page"""
+        if self.logo_path and os.path.exists(self.logo_path):
+            # Save the current state
+            self.saveState()
+            
+            # Get page dimensions
+            page_width, page_height = A4
+            
+            # Small logo in top right corner
+            logo_size = 0.8 * inch
+            x = page_width - logo_size - 0.5 * inch  # 0.5 inch from right edge
+            y = page_height - logo_size - 0.5 * inch  # 0.5 inch from top edge
+            
+            # Draw the logo (fully opaque)
+            self.setFillAlpha(1.0)
+            self.drawImage(self.logo_path, x, y, 
+                          width=logo_size, height=logo_size,
                           mask='auto', preserveAspectRatio=True)
             
             # Restore the state
@@ -74,9 +99,9 @@ def generate_body_composition_pdf(assessment):
     title_style = ParagraphStyle(
         'CustomTitle',
         parent=styles['Heading1'],
-        fontSize=24,
+        fontSize=22,
         textColor=colors.HexColor('#2C3E50'),
-        spaceAfter=30,
+        spaceAfter=15,
         alignment=TA_CENTER,
         fontName='Helvetica-Bold'
     )
@@ -84,34 +109,24 @@ def generate_body_composition_pdf(assessment):
     heading_style = ParagraphStyle(
         'CustomHeading',
         parent=styles['Heading2'],
-        fontSize=16,
+        fontSize=14,
         textColor=colors.HexColor('#34495E'),
-        spaceAfter=12,
-        spaceBefore=12,
+        spaceAfter=8,
+        spaceBefore=8,
         fontName='Helvetica-Bold'
     )
     
     normal_style = styles['Normal']
     
-    # Add PowerFuel Logo at the top (visible)
-    if os.path.exists(logo_path):
-        try:
-            logo = Image(logo_path, width=1.8*inch, height=1.8*inch)
-            logo.hAlign = 'CENTER'
-            elements.append(logo)
-            elements.append(Spacer(1, 0.15*inch))
-        except Exception as e:
-            print(f"Could not load logo: {e}")
-    
-    # Title
+    # Title (logo is now in header, not in content flow)
     title = Paragraph("BODY COMPOSITION ASSESSMENT REPORT", title_style)
     elements.append(title)
-    elements.append(Spacer(1, 0.2*inch))
+    elements.append(Spacer(1, 0.1*inch))
     
     # Date
     date_text = Paragraph(f"<b>Date:</b> {datetime.now().strftime('%B %d, %Y')}", normal_style)
     elements.append(date_text)
-    elements.append(Spacer(1, 0.3*inch))
+    elements.append(Spacer(1, 0.15*inch))
     
     # Personal Information Section
     elements.append(Paragraph("PERSONAL INFORMATION", heading_style))
@@ -136,7 +151,7 @@ def generate_body_composition_pdf(assessment):
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
     ]))
     elements.append(personal_table)
-    elements.append(Spacer(1, 0.3*inch))
+    elements.append(Spacer(1, 0.15*inch))
     
     # Body Composition Measurements Section
     elements.append(Paragraph("BODY COMPOSITION MEASUREMENTS", heading_style))
@@ -166,7 +181,7 @@ def generate_body_composition_pdf(assessment):
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#ECF0F1')]),
     ]))
     elements.append(measurements_table)
-    elements.append(Spacer(1, 0.3*inch))
+    elements.append(Spacer(1, 0.15*inch))
     
     # Subcutaneous Fat vs Muscle Mass Section
     elements.append(Paragraph("SUBCUTANEOUS FAT VS MUSCLE MASS DISTRIBUTION", heading_style))
@@ -194,7 +209,7 @@ def generate_body_composition_pdf(assessment):
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#ECF0F1')]),
     ]))
     elements.append(distribution_table)
-    elements.append(Spacer(1, 0.3*inch))
+    elements.append(Spacer(1, 0.15*inch))
     
     # Add page break before inference section
     elements.append(PageBreak())
