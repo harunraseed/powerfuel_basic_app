@@ -895,7 +895,10 @@
                         <div class="performance-notes" style="margin-top: 20px;">
                             <h4>🏃‍♂️ Performance Notes for Runners/Marathon Athletes:</h4>
                             <ul style="margin-top: 10px; line-height: 1.8; list-style-type: disc; padding-left: 25px;">
-                                ${inference.performance_notes.split('\n').filter(note => note.trim()).map(note => `<li>${note.replace(/^[•●■◆▪]-?\s*/, '')}</li>`).join('')}
+                                ${Array.isArray(inference.performance_notes) ? 
+                                    inference.performance_notes.map(note => `<li>${note.replace(/^[•●■◆▪]-?\s*/, '')}</li>`).join('') :
+                                    inference.performance_notes.split('\n').filter(note => note.trim()).map(note => `<li>${note.replace(/^[•●■◆▪]-?\s*/, '')}</li>`).join('')
+                                }
                             </ul>
                         </div>
 

@@ -298,30 +298,30 @@ def generate_body_composition_pdf(assessment):
     
     # Performance Notes for Runners
     perf_notes = []
-    perf_notes.append("<bullet>\u2022</bullet> BMI Reference (Asian-Pacific): <18.5 Underweight | 18.5-22.9 Normal | 23-24.9 Overweight | 25-29.9 Obese I | \u226530 Obese II")
-    perf_notes.append(f"<bullet>\u2022</bullet> Metabolic Age: {metabolic_age} years vs Actual Age: {age} years")
+    perf_notes.append("\u2022 BMI Reference (Asian-Pacific): <18.5 Underweight | 18.5-22.9 Normal | 23-24.9 Overweight | 25-29.9 Obese I | \u226530 Obese II")
+    perf_notes.append(f"\u2022 Metabolic Age: {metabolic_age} years vs Actual Age: {age} years")
     
     if metabolic_age < age:
-        perf_notes.append("<bullet>\u2022</bullet> \u2713 Excellent! Metabolic age is better than chronological age - indicates good fitness level")
+        perf_notes.append("\u2022 \u2713 Excellent! Metabolic age is better than chronological age - indicates good fitness level")
     elif metabolic_age > age:
-        perf_notes.append("<bullet>\u2022</bullet> \u26a0 Metabolic age is higher - focus on improving metabolic health through training and nutrition")
+        perf_notes.append("\u2022 \u26a0 Metabolic age is higher - focus on improving metabolic health through training and nutrition")
     
-    perf_notes.append("<bullet>\u2022</bullet> Visceral Fat (OMRON Healthcare): 0-9.5 Normal | 10-14.5 High | 15-30 Very High")
+    perf_notes.append("\u2022 Visceral Fat (OMRON Healthcare): 0-9.5 Normal | 10-14.5 High | 15-30 Very High")
     
     if gender == 'male':
         if body_fat <= 13:
-            perf_notes.append("<bullet>\u2022</bullet> \u2713 Body composition optimal for competitive marathon running")
+            perf_notes.append("\u2022 \u2713 Body composition optimal for competitive marathon running")
         elif body_fat <= 17:
-            perf_notes.append("<bullet>\u2022</bullet> Good body composition for recreational running")
+            perf_notes.append("\u2022 Good body composition for recreational running")
         else:
-            perf_notes.append("<bullet>\u2022</bullet> \u26a0 Body fat reduction may improve running performance and reduce injury risk")
+            perf_notes.append("\u2022 \u26a0 Body fat reduction may improve running performance and reduce injury risk")
     else:
         if body_fat <= 20:
-            perf_notes.append("<bullet>\u2022</bullet> \u2713 Body composition optimal for competitive marathon running")
+            perf_notes.append("\u2022 \u2713 Body composition optimal for competitive marathon running")
         elif body_fat <= 24:
-            perf_notes.append("<bullet>\u2022</bullet> Good body composition for recreational running")
+            perf_notes.append("\u2022 Good body composition for recreational running")
         else:
-            perf_notes.append("<bullet>\u2022</bullet> \u26a0 Body fat reduction may improve running performance and reduce injury risk")
+            perf_notes.append("\u2022 \u26a0 Body fat reduction may improve running performance and reduce injury risk")
     
     notes_text = "<br/>".join(perf_notes)
     performance_notes = Paragraph(
