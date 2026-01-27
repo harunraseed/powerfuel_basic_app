@@ -10,11 +10,12 @@ import os
 def generate_body_composition_pdf(assessment):
     """Generate a professional PDF report for body composition assessment"""
     
-    # Create reports directory if it doesn't exist
-    os.makedirs('reports', exist_ok=True)
+    # Use /tmp directory for serverless environments (Vercel)
+    reports_dir = '/tmp'
+    os.makedirs(reports_dir, exist_ok=True)
     
     # Generate filename
-    filename = f"reports/body_assessment_{assessment['id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    filename = f"{reports_dir}/body_assessment_{assessment['id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     
     # Create PDF document
     doc = SimpleDocTemplate(filename, pagesize=A4,

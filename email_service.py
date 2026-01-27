@@ -4,6 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from config import Config
 import os
+import time
 
 def send_assessment_email(to_email, client_name, pdf_path):
     """Send body composition assessment report via email"""
@@ -89,6 +90,15 @@ def send_assessment_email(to_email, client_name, pdf_path):
         server.send_message(msg)
         server.quit()
         print(f"Email sent successfully to {to_email}")
+        
+        # Clean up temporary PDF file
+        try:
+            if os.path.exists(pdf_path):
+                os.remove(pdf_path)
+                print(f"Cleaned up temporary file: {pdf_path}")
+        except Exception as cleanup_error:
+            print(f"Warning: Could not clean up temporary file: {cleanup_error}")
+        
         return True
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
