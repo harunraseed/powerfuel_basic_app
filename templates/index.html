@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Composition Assessment - PowerFuel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #2C3E50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498DB;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #34495E;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498DB;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .subsection {
+            background: #F8F9FA;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .subsection-title {
+            font-size: 1.3em;
+            color: #2ECC71;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498DB 0%, #2980B9 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2ECC71 0%, #27AE60 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(46, 204, 113, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95A5A6 0%, #7F8C8D 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(149, 165, 166, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+            display: none;
+        }
+
+        .message.success {
+            background: #D4EDDA;
+            color: #155724;
+            border: 1px solid #C3E6CB;
+        }
+
+        .message.error {
+            background: #F8D7DA;
+            color: #721C24;
+            border: 1px solid #F5C6CB;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498DB;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+        }
+
+        .popup {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            animation: popupSlide 0.3s ease-out;
+        }
+
+        @keyframes popupSlide {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .popup-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .popup-success {
+            color: #27AE60;
+        }
+
+        .popup-error {
+            color: #E74C3C;
+        }
+
+        .popup-message {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2C3E50;
+        }
+
+        .required {
+            color: #E74C3C;
+        }
+
+        .info-box {
+            background: #E8F4F8;
+            border-left: 4px solid #3498DB;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #2C3E50;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="flex: 1;">
+                <h1>🏃‍♂️ Body Composition Assessment</h1>
+                <p>Marathon Runners & Athletes Performance Analysis</p>
+                <p style="font-size: 0.9em; margin-top: 10px;">PowerFuel - The Nutrition Hub</p>
+            </div>
+            <div>
+                <a href="/dashboard" style="display: inline-block; padding: 12px 25px; background: white; color: #2C3E50; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">📊 Dashboard</a>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <div class="message" id="message"></div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px;">Processing...</p>
+            </div>
+
+            <form id="assessmentForm">
+                <!-- Personal Information Section -->
+                <div class="section">
+                    <h2 class="section-title">Personal Information</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="name">Name <span class="required">*</span></label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="age">Age (years) <span class="required">*</span></label>
+                            <input type="number" id="age" name="age" min="1" max="120" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="height">Height (cm) <span class="required">*</span></label>
+                            <input type="number" id="height" name="height" step="0.1" min="50" max="250" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender <span class="required">*</span></label>
+                            <select id="gender" name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="mobile">Mobile <span class="required">*</span></label>
+                            <input type="tel" id="mobile" name="mobile" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email <span class="required">*</span></label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Body Measurements Section -->
+                <div class="section">
+                    <h2 class="section-title">Body Composition Measurements</h2>
+                    
+                    <div class="info-box" id="referenceValues" style="display: none;">
+                        <p><strong>📊 Reference Values:</strong></p>
+                        <p id="bmiReference"></p>
+                        <p id="bodyFatReference"></p>
+                        <p id="visceralFatReference"></p>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="weight">Weight (kg) <span class="required">*</span></label>
+                            <input type="number" id="weight" name="weight" step="0.1" min="20" max="300" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="bmi">BMI (kg/m²) <span class="required">*</span></label>
+                            <input type="number" id="bmi" name="bmi" step="0.1" min="10" max="50" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="bodyFat">Body Fat (%) <span class="required">*</span></label>
+                            <input type="number" id="bodyFat" name="bodyFat" step="0.1" min="1" max="60" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="visceralFat">Visceral Fat (%) <span class="required">*</span></label>
+                            <input type="number" id="visceralFat" name="visceralFat" step="0.1" min="1" max="40" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="restingMetabolism">Resting Metabolism (kcal) <span class="required">*</span></label>
+                            <input type="number" id="restingMetabolism" name="restingMetabolism" min="500" max="5000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="metabolicAge">Body Metabolic Age (years) <span class="required">*</span></label>
+                            <input type="number" id="metabolicAge" name="metabolicAge" min="1" max="120" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subcutaneous Fat vs Muscle Mass Section -->
+                <div class="section">
+                    <h2 class="section-title">Subcutaneous Fat vs Muscle Mass Distribution</h2>
+                    
+                    <div class="subsection">
+                        <h3 class="subsection-title">Whole Body</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="wholeBodySubcutaneous">Subcutaneous Fat (%) <span class="required">*</span></label>
+                                <input type="number" id="wholeBodySubcutaneous" name="wholeBodySubcutaneous" step="0.1" min="0" max="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="wholeBodyMuscle">Muscle Mass (%) <span class="required">*</span></label>
+                                <input type="number" id="wholeBodyMuscle" name="wholeBodyMuscle" step="0.1" min="0" max="100" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Trunk</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="trunkSubcutaneous">Subcutaneous Fat (%) <span class="required">*</span></label>
+                                <input type="number" id="trunkSubcutaneous" name="trunkSubcutaneous" step="0.1" min="0" max="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="trunkMuscle">Muscle Mass (%) <span class="required">*</span></label>
+                                <input type="number" id="trunkMuscle" name="trunkMuscle" step="0.1" min="0" max="100" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Arms</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="armsSubcutaneous">Subcutaneous Fat (%) <span class="required">*</span></label>
+                                <input type="number" id="armsSubcutaneous" name="armsSubcutaneous" step="0.1" min="0" max="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="armsMuscle">Muscle Mass (%) <span class="required">*</span></label>
+                                <input type="number" id="armsMuscle" name="armsMuscle" step="0.1" min="0" max="100" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Legs</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="legsSubcutaneous">Subcutaneous Fat (%) <span class="required">*</span></label>
+                                <input type="number" id="legsSubcutaneous" name="legsSubcutaneous" step="0.1" min="0" max="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="legsMuscle">Muscle Mass (%) <span class="required">*</span></label>
+                                <input type="number" id="legsMuscle" name="legsMuscle" step="0.1" min="0" max="100" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <p><strong>📋 Note:</strong> All fields are required for accurate body composition analysis.</p>
+                    <p><strong>🏃‍♂️ For Athletes:</strong> Regular monitoring helps optimize performance and recovery.</p>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">💾 Save Assessment</button>
+                    <button type="button" id="generatePdfBtn" class="btn btn-secondary" disabled>📄 Generate PDF</button>
+                    <button type="button" id="sendEmailBtn" class="btn btn-success" disabled>📧 Send to Client</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentAssessmentId = null;
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type} show`;
+            setTimeout(() => {
+                messageDiv.className = 'message';
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').className = show ? 'loading show' : 'loading';
+        }
+
+        document.getElementById('assessmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            showLoading(true);
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch('/api/save-assessment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentAssessmentId = result.assessment_id;
+                    showPopup('✅', 'Assessment Saved Successfully!', 'success');
+                    document.getElementById('generatePdfBtn').disabled = false;
+                    document.getElementById('sendEmailBtn').disabled = false;
+                } else {
+                    showPopup('❌', result.message, 'error');
+                }
+            } catch (error) {
+                showPopup('❌', 'Error: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        document.getElementById('generatePdfBtn').addEventListener('click', async () => {
+            if (!currentAssessmentId) {
+                showPopup('❌', 'Please save the assessment first', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`/api/generate-pdf/${currentAssessmentId}`);
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `body_assessment_${currentAssessmentId}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    showPopup('✅', 'PDF Generated Successfully!', 'success');
+                } else {
+                    showPopup('❌', 'Failed to generate PDF', 'error');
+                }
+            } catch (error) {
+                showPopup('❌', 'Error: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        document.getElementById('sendEmailBtn').addEventListener('click', async () => {
+            if (!currentAssessmentId) {
+                showPopup('❌', 'Please save the assessment first', 'error');
+                return;
+            }
+            
+            if (!confirm('Send assessment report to client via email?')) {
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`/api/send-email/${currentAssessmentId}`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showPopup('✅', 'Email Sent Successfully!', 'success');
+                } else {
+                    showPopup('❌', result.message, 'error');
+                }
+            } catch (error) {
+                showPopup('❌', 'Error: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        function showPopup(icon, message, type) {
+            const overlay = document.getElementById('popupOverlay');
+            const iconEl = document.getElementById('popupIcon');
+            const messageEl = document.getElementById('popupMessage');
+            
+            iconEl.textContent = icon;
+            iconEl.className = `popup-icon ${type === 'success' ? 'popup-success' : 'popup-error'}`;
+            messageEl.textContent = message;
+            
+            overlay.classList.add('show');
+            
+            setTimeout(() => {
+                overlay.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auto-calculate BMI when weight and height change
+        document.getElementById('weight').addEventListener('input', calculateBMI);
+        document.getElementById('height').addEventListener('input', calculateBMI);
+        document.getElementById('gender').addEventListener('change', loadReferenceValues);
+
+        function calculateBMI() {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            
+            if (weight && height) {
+                const bmi = weight / Math.pow(height / 100, 2);
+                document.getElementById('bmi').value = bmi.toFixed(1);
+            }
+        }
+
+        async function loadReferenceValues() {
+            const gender = document.getElementById('gender').value;
+            if (!gender) {
+                document.getElementById('referenceValues').style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/reference-values/${gender}`);
+                const refs = await response.json();
+
+                document.getElementById('bmiReference').innerHTML = 
+                    `<strong>BMI:</strong> Normal: ${refs.bmi.normal.min}-${refs.bmi.normal.max} | Athletes: ${refs.bmi.athlete.min}-${refs.bmi.athlete.max}`;
+                
+                document.getElementById('bodyFatReference').innerHTML = 
+                    `<strong>Body Fat:</strong> Normal: ${refs.bodyFat.normal.min}-${refs.bodyFat.normal.max}% | Athletes: ${refs.bodyFat.athlete.min}-${refs.bodyFat.athlete.max}%`;
+                
+                document.getElementById('visceralFatReference').innerHTML = 
+                    `<strong>Visceral Fat:</strong> Normal: ${refs.visceralFat.normal.min}-${refs.visceralFat.normal.max} | Athletes: ${refs.visceralFat.athlete.min}-${refs.visceralFat.athlete.max}`;
+
+                document.getElementById('referenceValues').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading reference values:', error);
+            }
+        }
+    </script>
+
+    <!-- Success/Error Popup -->
+    <div id="popupOverlay" class="popup-overlay">
+        <div class="popup">
+            <div class="popup-icon" id="popupIcon"></div>
+            <div class="popup-message" id="popupMessage"></div>
+        </div>
+    </div>
+
+</body>
+</html>

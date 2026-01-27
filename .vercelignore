@@ -1,0 +1,45 @@
+# Vercel Ignore - Files to exclude from deployment
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Reports (generated files)
+reports/
+*.pdf
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation (optional - remove if you want docs deployed)
+CHANGES.md
+DEPLOYMENT_CHECKLIST.md
+
+# Git
+.git/
+.gitignore
+
+# Testing
+test/
+tests/
+*.test.js
+
+# Misc
+.DS_Store
+*.log
