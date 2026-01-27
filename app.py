@@ -157,25 +157,25 @@ def get_bmi_category_asian_pacific(bmi, age):
         return "Obese II"
 
 def get_body_fat_status(body_fat_percent, gender):
-    """Get body fat status based on Lohman 1986 & Nagamine 1972 classification"""
+    """Get body fat status based on research classification"""
     if gender.lower() == 'male':
         if body_fat_percent < 10:
-            return "Low - Below normal range (Lohman 1986)"
+            return "Low - Below normal range"
         elif body_fat_percent <= 20:
-            return "Normal - Healthy range (Lohman 1986)"
+            return "Normal - Healthy range"
         elif body_fat_percent <= 25:
-            return "High - Above normal (Lohman 1986)"
+            return "High - Above normal"
         else:
-            return "Very High - Action needed (Lohman 1986)"
+            return "Very High - Action needed"
     else:  # Female
         if body_fat_percent < 20:
-            return "Low - Below normal range (Lohman 1986)"
+            return "Low - Below normal range"
         elif body_fat_percent <= 30:
-            return "Normal - Healthy range (Lohman 1986)"
+            return "Normal - Healthy range"
         elif body_fat_percent <= 35:
-            return "High - Above normal (Lohman 1986)"
+            return "High - Above normal"
         else:
-            return "Very High - Action needed (Lohman 1986)"
+            return "Very High - Action needed"
 
 def analyze_muscle_fat_ratio(subcutaneous, muscle):
     """Analyze subcutaneous fat to muscle mass ratio"""
@@ -202,13 +202,13 @@ def analyze_muscle_fat_ratio(subcutaneous, muscle):
     return ratio_text, status
 
 def get_visceral_fat_inference(visceral_fat):
-    """Get visceral fat inference based on OMRON Healthcare standards"""
+    """Get visceral fat inference based on healthcare standards"""
     if visceral_fat <= 9.5:
-        return "Normal - Healthy level (OMRON Healthcare)"
+        return "Normal - Healthy level"
     elif visceral_fat <= 14.5:
-        return "High - Monitor and take action (OMRON Healthcare)"
+        return "High - Monitor and take action"
     else:
-        return "Very High - Immediate action required (OMRON Healthcare)"
+        return "Very High - Immediate action required"
 
 def generate_runner_inference(assessment):
     """Generate comprehensive inference for runners/marathon athletes"""
@@ -233,22 +233,26 @@ def generate_runner_inference(assessment):
         'whole_body': {
             'subcutaneous': assessment['whole_body_subcutaneous'],
             'muscle': assessment['whole_body_muscle'],
-            'ratio': analyze_muscle_fat_ratio(assessment['whole_body_subcutaneous'], assessment['whole_body_muscle'])
+            'ratio': analyze_muscle_fat_ratio(assessment['whole_body_subcutaneous'], assessment['whole_body_muscle'])[0],
+            'suggestion': analyze_muscle_fat_ratio(assessment['whole_body_subcutaneous'], assessment['whole_body_muscle'])[1]
         },
         'trunk': {
             'subcutaneous': assessment['trunk_subcutaneous'],
             'muscle': assessment['trunk_muscle'],
-            'ratio': analyze_muscle_fat_ratio(assessment['trunk_subcutaneous'], assessment['trunk_muscle'])
+            'ratio': analyze_muscle_fat_ratio(assessment['trunk_subcutaneous'], assessment['trunk_muscle'])[0],
+            'suggestion': analyze_muscle_fat_ratio(assessment['trunk_subcutaneous'], assessment['trunk_muscle'])[1]
         },
         'arms': {
             'subcutaneous': assessment['arms_subcutaneous'],
             'muscle': assessment['arms_muscle'],
-            'ratio': analyze_muscle_fat_ratio(assessment['arms_subcutaneous'], assessment['arms_muscle'])
+            'ratio': analyze_muscle_fat_ratio(assessment['arms_subcutaneous'], assessment['arms_muscle'])[0],
+            'suggestion': analyze_muscle_fat_ratio(assessment['arms_subcutaneous'], assessment['arms_muscle'])[1]
         },
         'legs': {
             'subcutaneous': assessment['legs_subcutaneous'],
             'muscle': assessment['legs_muscle'],
-            'ratio': analyze_muscle_fat_ratio(assessment['legs_subcutaneous'], assessment['legs_muscle'])
+            'ratio': analyze_muscle_fat_ratio(assessment['legs_subcutaneous'], assessment['legs_muscle'])[0],
+            'suggestion': analyze_muscle_fat_ratio(assessment['legs_subcutaneous'], assessment['legs_muscle'])[1]
         }
     }
     

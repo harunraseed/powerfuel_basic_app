@@ -142,6 +142,9 @@ def generate_body_composition_pdf(assessment):
     elements.append(distribution_table)
     elements.append(Spacer(1, 0.3*inch))
     
+    # Add page break before inference section
+    elements.append(PageBreak())
+    
     # Additional Calculations and Inferences
     height_m = assessment['height_cm'] / 100
     gender = assessment['gender'].lower()
@@ -172,35 +175,35 @@ def generate_body_composition_pdf(assessment):
         bmi_category = "N/A"
         bmi_inference = "BMI classification not applicable for under 18 years"
     
-    # Body Fat Status (Lohman 1986 & Nagamine 1972)
+    # Body Fat Status
     if gender == 'male':
         if body_fat < 10:
-            bf_status = "Low - Below normal range (Lohman 1986)"
+            bf_status = "Low - Below normal range"
         elif body_fat <= 20:
-            bf_status = "Normal - Healthy range (Lohman 1986)"
+            bf_status = "Normal - Healthy range"
         elif body_fat <= 25:
-            bf_status = "High - Above normal (Lohman 1986)"
+            bf_status = "High - Above normal"
         else:
-            bf_status = "Very High - Action needed (Lohman 1986)"
+            bf_status = "Very High - Action needed"
     else:
         if body_fat < 20:
-            bf_status = "Low - Below normal range (Lohman 1986)"
+            bf_status = "Low - Below normal range"
         elif body_fat <= 30:
-            bf_status = "Normal - Healthy range (Lohman 1986)"
+            bf_status = "Normal - Healthy range"
         elif body_fat <= 35:
-            bf_status = "High - Above normal (Lohman 1986)"
+            bf_status = "High - Above normal"
         else:
-            bf_status = "Very High - Action needed (Lohman 1986)"
+            bf_status = "Very High - Action needed"
     
-    # Visceral Fat Inference (OMRON Healthcare)
+    # Visceral Fat Inference
     if visceral_fat <= 9.5:
-        vf_status = "Normal - Healthy level (OMRON Healthcare)"
+        vf_status = "Normal - Healthy level"
         vf_inference = "Excellent visceral fat level - optimal for cardiovascular endurance"
     elif visceral_fat <= 14.5:
-        vf_status = "High - Monitor and take action (OMRON Healthcare)"
+        vf_status = "High - Monitor and take action"
         vf_inference = "Elevated visceral fat may impact performance - reduction recommended"
     else:
-        vf_status = "Very High - Immediate action required (OMRON Healthcare)"
+        vf_status = "Very High - Immediate action required"
         vf_inference = "High visceral fat impacts cardiovascular performance - immediate action needed"
     
     elements.append(Paragraph("INFERENCE & ANALYSIS FOR RUNNERS", heading_style))
@@ -209,11 +212,11 @@ def generate_body_composition_pdf(assessment):
     inference_data = [
         ['Assessment', 'Result', 'Status/Inference'],
         ['BMI Category\n(Asian-Pacific)', f"{bmi} kg/m\u00b2\n{bmi_category}", bmi_inference],
-        ['Body Fat %\n(Lohman 1986)', f"{body_fat}%", bf_status],
-        ['Visceral Fat\n(OMRON)', f"{visceral_fat}", f"{vf_status}\n{vf_inference}"],
+        ['Body Fat %', f"{body_fat}%", bf_status],
+        ['Visceral Fat', f"{visceral_fat}", f"{vf_status}\n{vf_inference}"],
     ]
     
-    inference_table = Table(inference_data, colWidths=[2*inch, 1.8*inch, 2.7*inch])
+    inference_table = Table(inference_data, colWidths=[1.8*inch, 1.6*inch, 3.1*inch])
     inference_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E74C3C')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -260,28 +263,29 @@ def generate_body_composition_pdf(assessment):
     legs_ratio, legs_status = get_ratio_analysis(assessment['legs_subcutaneous'], assessment['legs_muscle'])
     
     muscle_data = [
-        ['Body Part', 'Fat %', 'Muscle %', 'Ratio (Fat:Muscle)'],
-        ['Whole Body', f"{assessment['whole_body_subcutaneous']}", f"{assessment['whole_body_muscle']}", wb_ratio],
-        ['Trunk', f"{assessment['trunk_subcutaneous']}", f"{assessment['trunk_muscle']}", trunk_ratio],
-        ['Arms', f"{assessment['arms_subcutaneous']}", f"{assessment['arms_muscle']}", arms_ratio],
-        ['Legs', f"{assessment['legs_subcutaneous']}", f"{assessment['legs_muscle']}", legs_ratio],
+        ['Body Part', 'Fat %', 'Muscle %', 'Ratio', 'Suggestions'],
+        ['Whole Body', f"{assessment['whole_body_subcutaneous']}", f"{assessment['whole_body_muscle']}", wb_ratio, wb_status],
+        ['Trunk', f"{assessment['trunk_subcutaneous']}", f"{assessment['trunk_muscle']}", trunk_ratio, trunk_status],
+        ['Arms', f"{assessment['arms_subcutaneous']}", f"{assessment['arms_muscle']}", arms_ratio, arms_status],
+        ['Legs', f"{assessment['legs_subcutaneous']}", f"{assessment['legs_muscle']}", legs_ratio, legs_status],
     ]
     
-    muscle_table = Table(muscle_data, colWidths=[1.8*inch, 1.2*inch, 1.2*inch, 2.3*inch])
+    muscle_table = Table(muscle_data, colWidths=[1.2*inch, 0.8*inch, 0.9*inch, 1*inch, 2.6*inch])
     muscle_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2ECC71')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGN', (0, 0), (3, -1), 'CENTER'),
+        ('ALIGN', (4, 1), (4, -1), 'LEFT'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
         ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#ECF0F1')]),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
     ]))
     elements.append(muscle_table)
     elements.append(Spacer(1, 0.2*inch))
@@ -324,10 +328,26 @@ def generate_body_composition_pdf(assessment):
             perf_notes.append("\u2022 \u26a0 Body fat reduction may improve running performance and reduce injury risk")
     
     notes_text = "<br/>".join(perf_notes)
+    
+    # Create vibrant performance notes section
+    perf_heading_style = ParagraphStyle(
+        'PerfHeading',
+        parent=styles['Heading2'],
+        fontSize=13,
+        textColor=colors.HexColor('#E74C3C'),
+        spaceAfter=10,
+        spaceBefore=10,
+        fontName='Helvetica-Bold'
+    )
+    
+    perf_heading = Paragraph("🏃‍♂️ 💪 Performance Notes for Runners/Marathon Athletes:", perf_heading_style)
+    elements.append(perf_heading)
+    
     performance_notes = Paragraph(
-        f"<b>\ud83c\udfc3\u200d\u2642\ufe0f Performance Notes for Runners/Marathon Athletes:</b><br/><br/>{notes_text}",
+        notes_text,
         ParagraphStyle('Performance', parent=styles['Normal'], fontSize=9, 
-                      leading=16, leftIndent=10, rightIndent=10, spaceAfter=8)
+                      leading=16, leftIndent=15, rightIndent=10, spaceAfter=8,
+                      textColor=colors.HexColor('#2C3E50'))
     )
     elements.append(performance_notes)
     elements.append(Spacer(1, 0.4*inch))
@@ -344,7 +364,7 @@ def generate_body_composition_pdf(assessment):
     notes = Paragraph(
         "<b>Notes:</b> This body composition assessment provides valuable insights into your current fitness level. "
         "For marathon runners and athletes, maintaining optimal body composition is crucial for performance. "
-        "Please consult with a qualified nutritionist or fitness professional for personalized recommendations.",
+        "Book a consultation with us to improve your performance and achieve your goals through a scientific, evidence-based approach.",
         notes_style
     )
     elements.append(notes)

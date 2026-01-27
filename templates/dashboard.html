@@ -818,12 +818,12 @@
                             </div>
 
                             <div class="inference-item">
-                                <strong>Body Fat % (Indian Standard):</strong>
+                                <strong>Body Fat %:</strong>
                                 <div class="inference-value">${assessment.body_fat_percent}% - ${inference.body_fat_status}</div>
                                 <div style="font-size: 0.9em; color: #7F8C8D; margin-top: 8px;">
                                     ${assessment.gender === 'male' ? 
-                                        'Men Reference (Lohman 1986 & Nagamine 1972): <10% Low | 10-20% Normal | 20-25% High | ≥25% Very High' :
-                                        'Women Reference (Lohman 1986 & Nagamine 1972): <20% Low | 20-30% Normal | 30-35% High | ≥35% Very High'}
+                                        'Men Reference: <10% Low | 10-20% Normal | 20-25% High | ≥25% Very High' :
+                                        'Women Reference: <20% Low | 20-30% Normal | 30-35% High | ≥35% Very High'}
                                 </div>
                             </div>
 
@@ -831,7 +831,7 @@
                                 <strong>Visceral Fat:</strong>
                                 <div class="inference-value">${assessment.visceral_fat_percent} - ${inference.visceral_inference}</div>
                                 <div style="font-size: 0.9em; color: #7F8C8D; margin-top: 8px;">
-                                    Reference (OMRON Healthcare): 0-9.5 Normal | 10-14.5 High | 15-30 Very High
+                                    Reference: 0-9.5 Normal | 10-14.5 High | 15-30 Very High
                                 </div>
                             </div>
 
@@ -857,6 +857,7 @@
                                         <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Fat %</th>
                                         <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Muscle %</th>
                                         <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Ratio (Fat:Muscle)</th>
+                                        <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Suggestions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -865,24 +866,28 @@
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.whole_body_subcutaneous}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.whole_body_muscle}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${inference.muscle_distribution.whole_body.ratio}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${inference.muscle_distribution.whole_body.suggestion}</td>
                                     </tr>
                                     <tr>
                                         <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Trunk</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.trunk_subcutaneous}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.trunk_muscle}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${inference.muscle_distribution.trunk.ratio}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${inference.muscle_distribution.trunk.suggestion}</td>
                                     </tr>
                                     <tr style="background: #f9f9f9;">
                                         <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Arms</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.arms_subcutaneous}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.arms_muscle}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${inference.muscle_distribution.arms.ratio}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${inference.muscle_distribution.arms.suggestion}</td>
                                     </tr>
                                     <tr>
                                         <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Legs</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.legs_subcutaneous}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${assessment.legs_muscle}</td>
                                         <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${inference.muscle_distribution.legs.ratio}</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd; font-size: 0.85em;">${inference.muscle_distribution.legs.suggestion}</td>
                                     </tr>
                                 </tbody>
                             </table>
