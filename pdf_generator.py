@@ -6,6 +6,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.pdfgen import canvas
 from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
 from datetime import datetime
 import os
 import base64
@@ -38,10 +39,6 @@ class WatermarkCanvas(canvas.Canvas):
                 # Get page dimensions
                 page_width, page_height = A4
                 
-                # Reset BytesIO position before drawing
-                if hasattr(self.logo_path, 'seek'):
-                    self.logo_path.seek(0)
-                
                 # Draw watermark in center with transparency
                 watermark_size = 4 * inch  # Larger watermark
                 x = (page_width - watermark_size) / 2
@@ -50,7 +47,7 @@ class WatermarkCanvas(canvas.Canvas):
                 # Set transparency (0.08 = 8% opacity)
                 self.setFillAlpha(0.08)
                 
-                # Draw the watermark image from BytesIO
+                # Draw the watermark image (logo_path is temp file path)
                 self.drawImage(self.logo_path, x, y, 
                               width=watermark_size, height=watermark_size,
                               mask='auto', preserveAspectRatio=True)
@@ -67,22 +64,22 @@ class WatermarkCanvas(canvas.Canvas):
         """Draw small logo in top right corner of every page"""
         if self.logo_path:
             try:
+    def draw_header_logo(self):
+        """Draw small logo in top right corner of every page"""
+        if self.logo_path:
+            try:
                 # Save the current state
                 self.saveState()
                 
                 # Get page dimensions
                 page_width, page_height = A4
                 
-                # Reset BytesIO position before drawing
-                if hasattr(self.logo_path, 'seek'):
-                    self.logo_path.seek(0)
-                
                 # Small logo in top right corner
                 logo_size = 0.8 * inch
                 x = page_width - logo_size - 0.5 * inch  # 0.5 inch from right edge
                 y = page_height - logo_size - 0.5 * inch  # 0.5 inch from top edge
                 
-                # Draw the logo (fully opaque)
+                # Draw the logo (fully opaque) - logo_path is temp file path
                 self.setFillAlpha(1.0)
                 self.drawImage(self.logo_path, x, y, 
                               width=logo_size, height=logo_size,
@@ -95,10 +92,6 @@ class WatermarkCanvas(canvas.Canvas):
                 import traceback
                 traceback.print_exc()
                 self.restoreState()
-
-def generate_body_composition_pdf(assessment):
-    """Generate a professional PDF report for body composition analysis"""
-    
     # Use /tmp directory for serverless environments (Vercel)
     reports_dir = '/tmp'
     os.makedirs(reports_dir, exist_ok=True)
@@ -106,19 +99,20 @@ def generate_body_composition_pdf(assessment):
     # Generate filename
     filename = f"{reports_dir}/body_assessment_{assessment['id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     
-    # Decode base64 logo into BytesIO (works in serverless environments)
+    # Decode base64 logo and save to temp file (most reliable for ReportLab)
     logo_image = None
     try:
         logo_bytes = base64.b64decode(LOGO_BASE64)
-        logo_image = BytesIO(logo_bytes)
-        # Verify the image can be opened
-        test_img = PILImage.open(logo_image)
-        test_img.verify()
-        # Reset BytesIO position after verify
-        logo_image.seek(0)
-        print(f"✓ Logo loaded from embedded base64: {test_img.size} {test_img.format}")
+        # Save to temporary file
+        temp_logo_path = os.path.join('/tmp', 'powerfuel_logo.png')
+        with open(temp_logo_path, 'wb') as f:
+            f.write(logo_bytes)
+        logo_image = temp_logo_path
+        print(f"✓ Logo saved to {temp_logo_path} ({len(logo_bytes)} bytes)")
     except Exception as e:
         print(f"✗ Logo decoding error: {e}")
+        import traceback
+        traceback.print_exc()
         logo_image = None
     
     # Create PDF document with custom canvas
