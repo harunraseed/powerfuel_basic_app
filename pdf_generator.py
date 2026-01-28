@@ -310,7 +310,6 @@ def generate_body_composition_pdf(assessment):
     ]
     
     # Use Paragraph for text wrapping in the last column
-    from reportlab.platypus import Paragraph
     wrapped_inference_data = [inference_data[0]]  # Keep header as is
     cell_style = ParagraphStyle('CellStyle', parent=styles['Normal'], fontSize=8, leading=10)
     
