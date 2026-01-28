@@ -8,6 +8,12 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfgen import canvas
 from datetime import datetime
 import os
+import base64
+from io import BytesIO
+from PIL import Image as PILImage
+
+# PowerFuel Logo embedded as base64 (works in serverless environments)
+LOGO_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAOEAAADgCAMAAADCMfHtAAAB41BMVEX///8AAABZKs56enrWWH76t17Sml0zb/T///1ZKtB5M6///v/dSnf///z8//9ZK8z39/f2YF/s7OzkTXDz8/NTIn7l5eUQEBDCwsK0tLTb29vV1dVWJ6I0NDRaWlopKSmlpaVHFh2tra2Li4t0dHRjY2PMzMxra2tMgfUdHR1BQUG9vb2UlJSIiIioqKiARs//doNJSUlISEj8h415NKrPnF2ONkJEEybaWFstLS0XFxf89f71zZL6u23/tlZwO9H5687UWIEmZu88cun91t32qrT3lqb3w8r4uL/9fYj77O34gJP4ipf5iIzykJr74eLh0/HCq+Wph9WZbs+OXtL53K73wnvaxe1/TcF/PsxpL8ihm+GfqeaeuOm5z/XS4vfm8Pz98+M+Qd9Ugep+ne7Fy+D3zKRLS9x1fbK5lm7nqWT537rw4/add9NSWduejpuqcIGaX4jPmGyaV45vMbu6gHyEPJfKkm5iKXp7NZ9IG0VZKK9NHFxdJVlQGmZTI41IFw5HGzt4PWlwQDa5hV1qNlBgjemSNpmpPZe8RInLc1bfjmDsa13meF7yWmuiO6RdcLhhZ8jOU2p8Mk68UXS9SJM7Dx9tKD7MWH3ZS4ZTES1iSIu9XZl9ZrynX6leZduRY7SjsoscAAARK0lEQVR4nO2ci18T6bnHZxKUCcNcCHEgiYSQQDAXWG5uCsjdG+iKF+SSioDQ2rO6e7qWtqJsdefibrun9lRdVz3uev7U8zzPO5PM5MJpUTsDn/f38bOEZJK833nu7wwrCFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxc1SSrsqpKkqrKbq/kY0mWldNnzp49p6pur+SjST4/CJo9O+f2Qj6W1NMXBgfh3+wZcFW3F/NRJJ2dHWSad3spH0WqoF/8jAFeOK0eQhtCBtUvmSYcPC0cznSqnrkwSIE4OHcYbYiav0gWnD2vCoeUUD19cXZwdvCMLhxSL4UaMXf6/Ln5w9vTYLZB91QltxfyISRJkiCxnxIaj36VZUEBQBl+QncKPaqgALJ55AETrBzRBHkUhE6p0K8Smg//SQCmKMqGosAjeFo5UIwIBL44evnK1WsLy8vLC9euXrk8ipbEVyUJoZSN66cWx0CLp+5MwhPyQSIkvxxdurq8AvqENDFR2L728xurqzfX1tF2G9fHxo+YGh8/snh9Q5HkA5N+ILaU0SsLFtwnKxMFTQsEAr5A4NZ0/fTM5tYvfjl2pAjIKMd+uUFReiAkK6NLCxbeJ4DnQyGiL6DdBsZf/cvRzz8fO+JEPDJ2RzkQgJIiS3e/WPlkxTQfGk/zBXwaCn4Gbn35ryePoj4/Uq5TGyz5us2wpyRFlZaWTQOuFJDJIS2gNfz6qKlyOwIiplRvEwLiFctBJ4APjOck1LaHtr+6V2R0eur4IpwgbxNCIFmAK5qP3LJkRfRWbbuhYajhN/fAUU+erOKqp1jV9KykEuBEhYMCXkArNJDIiiwcnZ46ft3TIwec/SXLQ1l1CNgp4QkTsAFj8d7Jap56ZNJtir0kK3eXLQtqvio2RB9FLx1qaPjtyaPVg/EUa+m8KEgR8hcrtVyUEIsmbBj63e9NvpPliJMQzR4llKQlExAdshJQ821bfA0N21+VCJ2Ipzzbv0EryjoZcNGAppWZD4OycP8+eOgQo9z5bYnQmW42JG8CwnRk5lGtwn6IHCg8etCR//o+WJBB/ubo0aqhOH4H+lq3YapJkkYXCLBQbj5KqdrDXeD7uqPj653tBiIc+n11xPFTskczjcKicMJnb2MCRKj5Hv4hn//DDvjm18C500C++msbod1Px7w6DCtXV5iPalYQYtcGj5mDPjhOmXTo/uOOB/fJiL+7V8NPN7y5D6eMLpsm9JWb8PiDPz5+VMBagWQ79/MdaEZw01JNPGlH3HCbpYYur1A3GtCKnQxaMAABmH98rAAGtarh0BBz1W2bmwKrndCTbsoy6YSjEIKbFo7l87vHA+SrZilEV4W0et+eTe11f3wD9+M86KgYhivOZg0CEKLuEZQPKhfFls0Mx3+zB6LNiGRDzxGyjg0TqW1aOr77Ehw0QE+WvJQYh3Z2H+f//T9qEVqzvnc4oRpew1pYMiAY7SFUiIclm2pW02ZS7uzmO6ql07ENWVFkHBQlBbdUvcEpKVTvNTuh73jHMc0+QNkJCfE/8w4jspoIg76C+3XQ2Siqrgqy6g1C6mgmbITABoSYTasTIiQQ2guGWfWvq4osyJKsrG09ebJ10zMjMRGWYhCTCxD6bCa0DU9m1SAbVgyKk+ieiqzemDkBqt9SZW+0qRiHhYBWRmh30oC2bc4VQ998+6fXU42vP83/+Ttzw6ZEuKiwGfgmAZ44MXPDC7MGZnfIpXsT+rQCZdFvvn/d2Ez69M3Pmv7rL985bAijhYC5Zf3JCUtr7jYAeGVMwbN8dWVFs3tpoJwQ90qHGna+N/Gam59+mv9ZUxMxoh1PHmWZlH3qWhFwZtVVQqm4qXJlZWJvQmprvinyFQmB8btSqrlOdVCRLCcFuUuoSqNLS6MK5L7L2LJpexDCw8K3NsASYVPTX4CPCBcVhRGWbOguoUyV/io4qTS6bGtKKwgDNOj/9XVzdUKGCIQb5nAoeSMOVVlWLi8vLCzfhV+ULwql2lDFhjBp/LWx0e6kTTZCQIS+bXxSpcQJ1aLkpjdcvCYF3YZ0d2Fh4dooBuQSpNI9CXca9yBExM/vCAq7GCwJssLq4cyWLrlXD7E0C1euXVvCRamjyzUJNdxeLLxubLQzlhE2fXdvEq0FVpTBOcCMN7c2N6GnUVy8AC6R8LYK+AVYAzXikGaqwLeNjTbExqdNZYSf/fc6WE6S8W4UvD0DPBXv1nB9WwrvG5HYvRZ3tVq5FHczGhobHYhNZYRPX/1tHe+TVufOnZsDNjAlnUDXW7biOZaU9S/tacVGSFcRv220C3zUQfi0rq7uK1lRZXXu4uzspTmyosckKermrUpCc8ctsP26sQLRJHz6FPimAHEOTXh+9rPZ2XM4MXmgHXUITvnWba2cEO/CwIv4LJGWhEDPPs0/a372DB5N4a9TzedUAQkHB71JCLo5fdtnXtdG50RCH+2fopM2OwjrEOl5/gWimZrqOwvBp85fmJ29OOdFPOxDputvF+uFz/cw/+BRgWZgMOn3TsBXdXWvnuffvKizqe+iLmAgnj8/p3rzFilJ2qwvIUKROPa4Y/c4JthAoPC63IIv3rx8YzchEM7OsZv68D+eGe1LgpOurE4Doo/dHoSu+fBYB25G4b7payfgix9e5p+/qnMA9vWB7VRoZ7AeetBLFWhS1+rr66e/1HzsBiHscI7vduRxQ9GeSslB8z84DThFhGb4eRBPwJ4GyvTWNFhx+hb1MXR3ScD36EHH42NayYbI9+ZlGR8WCyJk8igh7h+tASAg3jb9FDfzAwUMx0cWYd0UOqgjwxRNOOvRFGoK+ytFfVJPmr6FdZBiEbeGd/P551PMgC+eVwQg6RkQXvD8n0OREadNxtu3fKzrxqJ/fPflm+dTFIDgoJV8ZMK+S9IB+BsFacskpJxz+5ZGF2W0W7f/5wdAowpRyWdm0r4z3ufD9vsEoNWXNI2Cn3/D/FndQS0T9s0fAEJZVW5O2wEtzvr6txCCxFeNkQAvKB5tZRyCbHOjCiEw/jjFGuxqFmSE53G0dxvg75H6ZNrpqEwzb6sHYBFwcI76GU+Llicr65tVrfgjGwIr9WyWCM+p3pyYSsKLF+hlkG2eVEX8qYYRia/vkie7bZvoj0QUuk1blaojvntLRrQbcqoICNXe60EoTS6OnZqUZNx7U1iDWh6J714g0pTTWRng7Lzg9USqbiyOjR1Z3KCuRFHU1Wp++u6tzXY2vr7Beds1Hm9KVifxj5jGJq2+S1k7UcVTZ35qtOimbICX5lWPB2GJcMNaqKToq9Vqxo+vmhkdFMcLpoee11Wv3o9YEszm1wHwOvgnewLvFlm/MeMMR/zl3f++ZYjPTL4zc6oged6EKGXyzqRzg1oS1ldPTFfU/3c//vSirpnhnT03dxDYSPi/LCm7uReKh6Ku3tisN7vvetaIz2zeWJubPw2aU1RV9ehd3ZXCe/Wd+Z5dXVEEdf3m6tbmiRnQ5ubW6s11/B+4CCqT18PPJnYhqsYLZGFdV1UqCvb2s8abvKra/oabOJhg2d8+H1zCPWXaUj4gIxIXFxcXFxcX1+GRbLQmEuFo8P0+RY9mE+FWY89jQuHU+33JvhTqaRNJLbGEvv+PSabZp2Ryodpf1S6KLiDmxJJGEvv9FL2l9Ck1naEXXuzd7zfsX0lcVHu7ubqu2hbYUzqYsCXhx4+J1fSEHni1db/r3L9CaMScbMQZZGafiPDutCzorfFs7fESCd0IxDB8bzc+iBOif3+f0g+EZcaLRMqOybljQ8EP3xunR5E2kzDVn8nhco29DRrK9VDM6eanWAEYorwMPJ3O4/FcZj/gyv9ewdkXo+xhF4MNoi37ZVx1tMobgolkLotUMVEclgUjJmZahUTJAw32MGeeOT2cS4YJPuoS4XDx7LeKDLab3DWH+THmONRAv0vQq+0pyi5iysD47RciRU8gb48z0JGgEGXxja+F3CGUYZ3t9CiCGR+QsmZ9xEW32w+NoA9nraLQStbvbmenRYcT1cUOy5lFAR03FbQOT8JXuZRLgSsDP2WsVmJbiNJiEjl64JUR+6F4BJqsxe9H8+lxa/Xoy53wPDsM609YYE4ZRszungyxuURIJzkZzlFnkzHIUjGKsQwQDtsPReOE2SqDcHjOtE8b5cw4uWw0FaWigM6IXtzbRtZDx48RoQvVwrD1NDl8IksIYK+0WBaHSAgGSuNjsEpMTpcqqB6zPqQzaYUb0MVHRBFPAFLrLhFGrJWNsNSPOb2VaNoswkhbyUyw/BaZwcYQU2ynd0WGi6epK2d6Kbp7doR8mHJYSHfHS03CTNiqfRA+7WFcGZ73NngihLkoZBISZRxzDNgmVkygSfNTcuGUnjCfRSeOwHu7e7EKAXTIQneBMGefetJWeNGJZx4m9ghmX2mZqjtE2cVM/3oigW8je6ZEVuvBGdr0jHn4QIQh77u3fz/CFke/xQqemNXbKW6CbGyAxQ/AkUHG30behi5bnCTQunSi0BkxOw9gcWG1VYxbX+XCbEGWcg6u5HJJyqeQfEwH7KSclCG7QadOB+bsbzWKForR0/hilDo1sYudhpQ7NqRcWpbhUj1+dD40ZhqXSHaLd5MtUmb+0SFw46K99xywigsW024shF2s3FJL3hqhz3MhDg2x5veGrJiLWmNym86a104cBXNEmC5OS6Xxb4AdTWkWj+lP5DJwWvyV5/KfITzJtc5sD1tpjsofLhldspg8emn1pZ4ArUtjGPUDYGnmm34rNdGHvOdu0L6UrojDokLUdKJPBjG2/Gx5eg/lHpjlW8Viu43PtxVbUz3emSxaq5c+JRPBDsDZyf+TlO3vLh9VizI6+7tM+wYjpWFRj0QNSr+9XXHb0dFYV/VTZUTpzalYrOY3cXFxcR0S6UYU9IE+LGQ1AoYbFbCqQmzKFyt3rMO23aNWZ09ihKvtN+a6goa176qnMx9wke+lHnE4LXbnokLFmttK21GR0hnoxtk9JsYFvV90vgWavWxKNMEMGjE9oWBK6MdFJ51W7OoEjKAREnI4T2SxKWk1BF2HFszAfYqIEBqB4Sts6/ug0zVagRCaAn/cKN8WdlVtaIwMEYb8Gep09LQYScJgHwPOXty9iQtRMRNNi0bIwEkQt9cg0sI4Ikd0dqdbUByBfq6rFRw1DW/tf98rkx9OQCPgFrgQNMAHh6lbBY/ryYp+IEyh+TrFuJGiaVFvA8tFxTbDMFoyofRwO0z/8RjNSfCeVE70J8B6CZFa2G6PMIZo/zfW3toiGi0xsEuSNh6Gw0QYEmM5mipiMTIYWLKLlp8Tu6NiNCH2iO1sT4NOgZgBSIxCsSvbLw68x7XXDyiDsgNtMmXTA9k2MY6ppUXsh8XHgDUGuagllwh24wSREv09sPzueCohxlNibw/uUfXT3qhB03J7DmwYhZPTiSOlG5ecKhWl2SaDa8vBDJvO0nN4ETwMU2CvGNZhqToOfAncH0wKekqM44gbxr3f/ig4J6UVjM4o/t4PaSvc0o/O7Q3CFM2v7WIWsJLigBwM4nO5VnEEht4cDa9+/E8SR+JW3H2L4KM4AEcHYkF4e4g+QYZDg+JwaATe1B5Kt0R6aG/AA2KEA13ogXqLSF6KVkoZFFpohiSrJxl0xRxGqR9ZWaUIdkV0NuHGRJx2gwnwgygN2DGPZJpIi9m8hDBHJDtzuC426QqRLC0yThvYLYiky+iPONPb6n2Ymr5gPATWjgrRbAhjsN+Na4b/j2peik84d5JkDLLq0sMesds/qGzZFc5hz7RkH0rGiLPz9ne5tBAuLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLpflP+z6PyDSyJlzbs9dAAAAAElFTkSuQmCC"
 
 class WatermarkCanvas(canvas.Canvas):
     """Custom canvas class to add watermark and logo on every page"""
@@ -24,7 +30,7 @@ class WatermarkCanvas(canvas.Canvas):
     
     def draw_watermark(self):
         """Draw watermark logo in the center background of every page"""
-        if self.logo_path and os.path.exists(self.logo_path):
+        if self.logo_path:
             try:
                 # Save the current state
                 self.saveState()
@@ -37,10 +43,10 @@ class WatermarkCanvas(canvas.Canvas):
                 x = (page_width - watermark_size) / 2
                 y = (page_height - watermark_size) / 2
                 
-                # Set transparency (0.1 = 10% opacity)
+                # Set transparency (0.08 = 8% opacity)
                 self.setFillAlpha(0.08)
                 
-                # Draw the watermark image
+                # Draw the watermark image from BytesIO
                 self.drawImage(self.logo_path, x, y, 
                               width=watermark_size, height=watermark_size,
                               mask='auto', preserveAspectRatio=True)
@@ -53,7 +59,7 @@ class WatermarkCanvas(canvas.Canvas):
     
     def draw_header_logo(self):
         """Draw small logo in top right corner of every page"""
-        if self.logo_path and os.path.exists(self.logo_path):
+        if self.logo_path:
             try:
                 # Save the current state
                 self.saveState()
@@ -88,24 +94,14 @@ def generate_body_composition_pdf(assessment):
     # Generate filename
     filename = f"{reports_dir}/body_assessment_{assessment['id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     
-    # Logo path for watermark - use multiple possible paths for local and Vercel
-    logo_path = None
-    possible_paths = [
-        os.path.join(os.path.dirname(__file__), 'static', 'images', 'logo_transparent.png'),
-        os.path.join(os.getcwd(), 'static', 'images', 'logo_transparent.png'),
-        'static/images/logo_transparent.png',
-        '/var/task/static/images/logo_transparent.png',  # Vercel path
-    ]
-    for path in possible_paths:
-        if os.path.exists(path):
-            logo_path = path
-            print(f"✓ Logo found at: {path}")
-            break
-    
-    if not logo_path:
-        print(f"✗ Logo not found. Checked paths: {possible_paths}")
-        print(f"Current dir: {os.getcwd()}")
-        print(f"__file__ dir: {os.path.dirname(__file__)}")
+    # Decode base64 logo into BytesIO (works in serverless environments)
+    logo_image = None
+    try:
+        logo_bytes = base64.b64decode(LOGO_BASE64)
+        logo_image = BytesIO(logo_bytes)
+        print("✓ Logo loaded from embedded base64")
+    except Exception as e:
+        print(f"✗ Logo decoding error: {e}")
     
     # Create PDF document with custom canvas
     doc = SimpleDocTemplate(filename, pagesize=A4,
@@ -113,7 +109,7 @@ def generate_body_composition_pdf(assessment):
                            topMargin=72, bottomMargin=18)
     
     # Set custom canvas with watermark
-    doc.canvasmaker = lambda *args, **kwargs: WatermarkCanvas(*args, logo_path=logo_path, **kwargs)
+    doc.canvasmaker = lambda *args, **kwargs: WatermarkCanvas(*args, logo_path=logo_image, **kwargs)
     
     # Container for the 'Flowable' objects
     elements = []
