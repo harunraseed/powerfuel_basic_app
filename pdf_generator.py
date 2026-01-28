@@ -88,6 +88,10 @@ class WatermarkCanvas(canvas.Canvas):
                 import traceback
                 traceback.print_exc()
                 self.restoreState()
+
+def generate_body_composition_pdf(assessment):
+    """Generate a professional PDF report for body composition analysis"""
+    
     # Use /tmp directory for serverless environments (Vercel)
     reports_dir = '/tmp'
     os.makedirs(reports_dir, exist_ok=True)
