@@ -7,7 +7,7 @@ import os
 import time
 
 def send_assessment_email(to_email, client_name, pdf_path):
-    """Send body composition assessment report via email"""
+    """Send body composition analysis report via email"""
     
     # Email configuration
     from_email = Config.MAIL_USERNAME
@@ -17,7 +17,7 @@ def send_assessment_email(to_email, client_name, pdf_path):
     msg = MIMEMultipart()
     msg['From'] = from_email
     msg['To'] = to_email
-    msg['Subject'] = 'Your Body Composition Assessment Report - PowerFuel'
+    msg['Subject'] = 'Your Body Composition Analysis Report - PowerFuel'
     
     # Email body
     body = f"""
@@ -25,19 +25,19 @@ def send_assessment_email(to_email, client_name, pdf_path):
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #2C3E50; border-bottom: 3px solid #3498DB; padding-bottom: 10px;">
-                    Body Composition Assessment Report
+                    Body Composition Analysis Report
                 </h2>
                 
                 <p>Dear {client_name},</p>
                 
-                <p>Thank you for participating in our body composition assessment event!</p>
+                <p>Thank you for participating in our body composition analysis event!</p>
                 
                 <p>Please find your detailed body composition report attached to this email. 
-                This comprehensive assessment includes:</p>
+                This comprehensive analysis includes:</p>
                 
                 <ul style="background-color: #ECF0F1; padding: 20px; border-radius: 5px;">
                     <li>Personal measurements and body composition metrics</li>
-                    <li>BMI and metabolic indicators</li>
+                    <li>BMI and Body Fat%</li>
                     <li>Subcutaneous fat and muscle mass distribution</li>
                     <li>Additional calculated metrics for performance optimization</li>
                 </ul>
@@ -48,16 +48,21 @@ def send_assessment_email(to_email, client_name, pdf_path):
                     track your progress and make informed decisions about your training and nutrition.
                 </p>
                 
-                <p>If you have any questions about your results or would like personalized nutrition 
-                and training recommendations, please don't hesitate to reach out to us.</p>
+                <p>If you have any questions about your results or would like a personalized nutrition plan, please don't hesitate to reach out to us via call or WhatsApp at +91-7397442544.</p>
                 
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ECF0F1;">
                     <p style="margin-bottom: 5px;"><strong>Best regards,</strong></p>
-                    <p style="margin: 0; color: #3498DB; font-size: 18px; font-weight: bold;">
+                    <p style="margin: 0; color: #3498DB; font-weight: bold;">
+                        Afreen Rihana H, M.Sc.CN (SRIHER), CDE(IDF), CSN(BARCA INNOVATION HUB)
+                    </p>
+                    <p style="margin: 0; color: #3498DB; font-weight: bold;">
+                        Founder & Chief Nutritionist
+                    </p>
+                    <p style="margin: 5px 0; font-size: 16px; font-weight: bold; color: #2C3E50;">
                         PowerFuel - The Nutrition Hub
                     </p>
                     <p style="margin: 5px 0; font-size: 12px; color: #7F8C8D;">
-                        Email: {from_email}
+                        Email: powerfuel.thenutritionhub@gmail.com
                     </p>
                 </div>
                 

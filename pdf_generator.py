@@ -38,6 +38,10 @@ class WatermarkCanvas(canvas.Canvas):
                 # Get page dimensions
                 page_width, page_height = A4
                 
+                # Reset BytesIO position before drawing
+                if hasattr(self.logo_path, 'seek'):
+                    self.logo_path.seek(0)
+                
                 # Draw watermark in center with transparency
                 watermark_size = 4 * inch  # Larger watermark
                 x = (page_width - watermark_size) / 2
@@ -55,6 +59,8 @@ class WatermarkCanvas(canvas.Canvas):
                 self.restoreState()
             except Exception as e:
                 print(f"Watermark error: {e}")
+                import traceback
+                traceback.print_exc()
                 self.restoreState()
     
     def draw_header_logo(self):
@@ -66,6 +72,10 @@ class WatermarkCanvas(canvas.Canvas):
                 
                 # Get page dimensions
                 page_width, page_height = A4
+                
+                # Reset BytesIO position before drawing
+                if hasattr(self.logo_path, 'seek'):
+                    self.logo_path.seek(0)
                 
                 # Small logo in top right corner
                 logo_size = 0.8 * inch
@@ -82,10 +92,12 @@ class WatermarkCanvas(canvas.Canvas):
                 self.restoreState()
             except Exception as e:
                 print(f"Header logo error: {e}")
+                import traceback
+                traceback.print_exc()
                 self.restoreState()
 
 def generate_body_composition_pdf(assessment):
-    """Generate a professional PDF report for body composition assessment"""
+    """Generate a professional PDF report for body composition analysis"""
     
     # Use /tmp directory for serverless environments (Vercel)
     reports_dir = '/tmp'
@@ -99,9 +111,15 @@ def generate_body_composition_pdf(assessment):
     try:
         logo_bytes = base64.b64decode(LOGO_BASE64)
         logo_image = BytesIO(logo_bytes)
-        print("✓ Logo loaded from embedded base64")
+        # Verify the image can be opened
+        test_img = PILImage.open(logo_image)
+        test_img.verify()
+        # Reset BytesIO position after verify
+        logo_image.seek(0)
+        print(f"✓ Logo loaded from embedded base64: {test_img.size} {test_img.format}")
     except Exception as e:
         print(f"✗ Logo decoding error: {e}")
+        logo_image = None
     
     # Create PDF document with custom canvas
     doc = SimpleDocTemplate(filename, pagesize=A4,
@@ -139,7 +157,7 @@ def generate_body_composition_pdf(assessment):
     normal_style = styles['Normal']
     
     # Title (logo is now in header, not in content flow)
-    title = Paragraph("BODY COMPOSITION ASSESSMENT REPORT", title_style)
+    title = Paragraph("BODY COMPOSITION ANALYSIS REPORT", title_style)
     elements.append(title)
     elements.append(Spacer(1, 0.1*inch))
     
