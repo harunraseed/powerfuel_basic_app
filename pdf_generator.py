@@ -64,10 +64,6 @@ class WatermarkCanvas(canvas.Canvas):
         """Draw small logo in top right corner of every page"""
         if self.logo_path:
             try:
-    def draw_header_logo(self):
-        """Draw small logo in top right corner of every page"""
-        if self.logo_path:
-            try:
                 # Save the current state
                 self.saveState()
                 
