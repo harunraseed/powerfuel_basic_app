@@ -25,50 +25,58 @@ class WatermarkCanvas(canvas.Canvas):
     def draw_watermark(self):
         """Draw watermark logo in the center background of every page"""
         if self.logo_path and os.path.exists(self.logo_path):
-            # Save the current state
-            self.saveState()
-            
-            # Get page dimensions
-            page_width, page_height = A4
-            
-            # Draw watermark in center with transparency
-            watermark_size = 4 * inch  # Larger watermark
-            x = (page_width - watermark_size) / 2
-            y = (page_height - watermark_size) / 2
-            
-            # Set transparency (0.1 = 10% opacity)
-            self.setFillAlpha(0.08)
-            
-            # Draw the watermark image
-            self.drawImage(self.logo_path, x, y, 
-                          width=watermark_size, height=watermark_size,
-                          mask='auto', preserveAspectRatio=True)
-            
-            # Restore the state
-            self.restoreState()
+            try:
+                # Save the current state
+                self.saveState()
+                
+                # Get page dimensions
+                page_width, page_height = A4
+                
+                # Draw watermark in center with transparency
+                watermark_size = 4 * inch  # Larger watermark
+                x = (page_width - watermark_size) / 2
+                y = (page_height - watermark_size) / 2
+                
+                # Set transparency (0.1 = 10% opacity)
+                self.setFillAlpha(0.08)
+                
+                # Draw the watermark image
+                self.drawImage(self.logo_path, x, y, 
+                              width=watermark_size, height=watermark_size,
+                              mask='auto', preserveAspectRatio=True)
+                
+                # Restore the state
+                self.restoreState()
+            except Exception as e:
+                print(f"Watermark error: {e}")
+                self.restoreState()
     
     def draw_header_logo(self):
         """Draw small logo in top right corner of every page"""
         if self.logo_path and os.path.exists(self.logo_path):
-            # Save the current state
-            self.saveState()
-            
-            # Get page dimensions
-            page_width, page_height = A4
-            
-            # Small logo in top right corner
-            logo_size = 0.8 * inch
-            x = page_width - logo_size - 0.5 * inch  # 0.5 inch from right edge
-            y = page_height - logo_size - 0.5 * inch  # 0.5 inch from top edge
-            
-            # Draw the logo (fully opaque)
-            self.setFillAlpha(1.0)
-            self.drawImage(self.logo_path, x, y, 
-                          width=logo_size, height=logo_size,
-                          mask='auto', preserveAspectRatio=True)
-            
-            # Restore the state
-            self.restoreState()
+            try:
+                # Save the current state
+                self.saveState()
+                
+                # Get page dimensions
+                page_width, page_height = A4
+                
+                # Small logo in top right corner
+                logo_size = 0.8 * inch
+                x = page_width - logo_size - 0.5 * inch  # 0.5 inch from right edge
+                y = page_height - logo_size - 0.5 * inch  # 0.5 inch from top edge
+                
+                # Draw the logo (fully opaque)
+                self.setFillAlpha(1.0)
+                self.drawImage(self.logo_path, x, y, 
+                              width=logo_size, height=logo_size,
+                              mask='auto', preserveAspectRatio=True)
+                
+                # Restore the state
+                self.restoreState()
+            except Exception as e:
+                print(f"Header logo error: {e}")
+                self.restoreState()
 
 def generate_body_composition_pdf(assessment):
     """Generate a professional PDF report for body composition assessment"""
@@ -80,8 +88,24 @@ def generate_body_composition_pdf(assessment):
     # Generate filename
     filename = f"{reports_dir}/body_assessment_{assessment['id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     
-    # Logo path for watermark
-    logo_path = os.path.join(os.path.dirname(__file__), 'static', 'images', 'logo_transparent.png')
+    # Logo path for watermark - use multiple possible paths for local and Vercel
+    logo_path = None
+    possible_paths = [
+        os.path.join(os.path.dirname(__file__), 'static', 'images', 'logo_transparent.png'),
+        os.path.join(os.getcwd(), 'static', 'images', 'logo_transparent.png'),
+        'static/images/logo_transparent.png',
+        '/var/task/static/images/logo_transparent.png',  # Vercel path
+    ]
+    for path in possible_paths:
+        if os.path.exists(path):
+            logo_path = path
+            print(f"✓ Logo found at: {path}")
+            break
+    
+    if not logo_path:
+        print(f"✗ Logo not found. Checked paths: {possible_paths}")
+        print(f"Current dir: {os.getcwd()}")
+        print(f"__file__ dir: {os.path.dirname(__file__)}")
     
     # Create PDF document with custom canvas
     doc = SimpleDocTemplate(filename, pagesize=A4,
@@ -285,7 +309,20 @@ def generate_body_composition_pdf(assessment):
         ['Visceral Fat', f"{visceral_fat}", f"{vf_status}\n{vf_inference}"],
     ]
     
-    inference_table = Table(inference_data, colWidths=[1.8*inch, 1.6*inch, 3.1*inch])
+    # Use Paragraph for text wrapping in the last column
+    from reportlab.platypus import Paragraph
+    wrapped_inference_data = [inference_data[0]]  # Keep header as is
+    cell_style = ParagraphStyle('CellStyle', parent=styles['Normal'], fontSize=8, leading=10)
+    
+    for row in inference_data[1:]:
+        wrapped_row = [
+            row[0],
+            row[1],
+            Paragraph(row[2], cell_style) if isinstance(row[2], str) else row[2]
+        ]
+        wrapped_inference_data.append(wrapped_row)
+    
+    inference_table = Table(wrapped_inference_data, colWidths=[1.5*inch, 1.3*inch, 3.7*inch])
     inference_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E74C3C')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
