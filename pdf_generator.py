@@ -5,16 +5,29 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image, PageTemplate, Frame
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.pdfgen import canvas
-from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from datetime import datetime
 import os
-import base64
-from io import BytesIO
-from PIL import Image as PILImage
+import shutil
 
-# PowerFuel Logo embedded as base64 (works in serverless environments)
-LOGO_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACqSURBVDhPzZI9CgIxEEbnSJZaaKFgIaiNYKneQbyDeFAVPIJ/byY7qEsm7mLjg8fOFPmSTFb+ihFOUvmVBXZT+WKGj+pbYoU3HFhXY4p3jELWqIv71gXo4lyI7nzF7M51PGRuncgGw2NHaMgR93jCVoudA+pgt9a1RO98xh1eMBpsFp+2H1tnUXqdD6Jp+2CLIcWfBIohS2zyVB4ytu6NXmUThthJ5U+IPAFjBiNrH+gL0QAAAABJRU5ErkJggg=="
+# Get the absolute path to the logo file
+# This works both locally and on Vercel
+def get_logo_path():
+    """Get the logo file path, works in both local and Vercel environments"""
+    # Try multiple possible locations
+    possible_paths = [
+        os.path.join(os.path.dirname(__file__), 'static', 'images', 'logo_transparent.png'),  # Local
+        os.path.join(os.getcwd(), 'static', 'images', 'logo_transparent.png'),  # Current working directory
+        '/var/task/static/images/logo_transparent.png',  # Vercel serverless
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            print(f"✓ Logo found at: {path}")
+            return path
+    
+    print(f"✗ Logo not found in any location")
+    return None
 
 class WatermarkCanvas(canvas.Canvas):
     """Custom canvas class to add watermark and logo on every page"""
@@ -99,21 +112,12 @@ def generate_body_composition_pdf(assessment):
     # Generate filename
     filename = f"{reports_dir}/body_assessment_{assessment['id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     
-    # Decode base64 logo and save to temp file (most reliable for ReportLab)
-    logo_image = None
-    try:
-        logo_bytes = base64.b64decode(LOGO_BASE64)
-        # Save to temporary file
-        temp_logo_path = os.path.join('/tmp', 'powerfuel_logo.png')
-        with open(temp_logo_path, 'wb') as f:
-            f.write(logo_bytes)
-        logo_image = temp_logo_path
-        print(f"✓ Logo saved to {temp_logo_path} ({len(logo_bytes)} bytes)")
-    except Exception as e:
-        print(f"✗ Logo decoding error: {e}")
-        import traceback
-        traceback.print_exc()
-        logo_image = None
+    # Get logo path directly from static folder
+    logo_image = get_logo_path()
+    if logo_image:
+        print(f"✓ Using logo from: {logo_image}")
+    else:
+        print(f"✗ Logo not found - PDF will be generated without logo")
     
     # Create PDF document with custom canvas
     doc = SimpleDocTemplate(filename, pagesize=A4,
