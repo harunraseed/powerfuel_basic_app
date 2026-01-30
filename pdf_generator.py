@@ -14,19 +14,48 @@ import shutil
 # This works both locally and on Vercel
 def get_logo_path():
     """Get the logo file path, works in both local and Vercel environments"""
-    # Try multiple possible locations
+    logo_filename = 'logo_transparent.png'
+    
+    # Try multiple possible locations with detailed logging
     possible_paths = [
-        os.path.join(os.path.dirname(__file__), 'static', 'images', 'logo_transparent.png'),  # Local
-        os.path.join(os.getcwd(), 'static', 'images', 'logo_transparent.png'),  # Current working directory
-        '/var/task/static/images/logo_transparent.png',  # Vercel serverless
+        # Local development
+        os.path.join(os.path.dirname(__file__), 'static', 'images', logo_filename),
+        os.path.join(os.getcwd(), 'static', 'images', logo_filename),
+        
+        # Vercel serverless - various possible locations
+        os.path.join('/var/task', 'static', 'images', logo_filename),
+        os.path.join('/var/task/api', '..', 'static', 'images', logo_filename),
+        
+        # Relative to this file's parent directory
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'images', logo_filename),
     ]
     
-    for path in possible_paths:
-        if os.path.exists(path):
-            print(f"✓ Logo found at: {path}")
-            return path
+    print(f"\n🔍 Searching for logo: {logo_filename}")
+    print(f"📂 Current working directory: {os.getcwd()}")
+    print(f"📄 This file location: {__file__}")
     
-    print(f"✗ Logo not found in any location")
+    for i, path in enumerate(possible_paths, 1):
+        abs_path = os.path.abspath(path)
+        exists = os.path.exists(abs_path)
+        print(f"  [{i}] {'✓' if exists else '✗'} {abs_path}")
+        if exists:
+            print(f"\n✅ Logo found at: {abs_path}\n")
+            return abs_path
+    
+    # Debug: List actual directory contents
+    print("\n⚠️ Logo not found. Checking directory contents:")
+    check_dirs = ['/var/task', os.getcwd(), os.path.dirname(__file__)]
+    for check_dir in check_dirs:
+        if os.path.exists(check_dir):
+            print(f"\n📁 Contents of {check_dir}:")
+            try:
+                for item in os.listdir(check_dir)[:10]:  # First 10 items
+                    item_path = os.path.join(check_dir, item)
+                    print(f"  - {item} {'[DIR]' if os.path.isdir(item_path) else ''}")
+            except Exception as e:
+                print(f"  Error listing: {e}")
+    
+    print(f"\n❌ Logo not found in any location\n")
     return None
 
 class WatermarkCanvas(canvas.Canvas):
