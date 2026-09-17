@@ -595,7 +595,7 @@ def generate_general_consultation_pdf(assessment):
         ['Weight', f"{assessment['weight_kg']}", 'kg'],
         ['BMI (Body Mass Index)', f"{assessment['bmi']}", 'kg/m²'],
         ['Body Fat', f"{assessment['body_fat_percent']}", '%'],
-        ['Belly (Visceral) Fat', f"{assessment['visceral_fat_percent']}", '%'],
+        ['Visceral Fat', f"{assessment['visceral_fat_percent']}", '%'],
         ['Calories Burnt at Rest', f"{assessment['resting_metabolism']}", 'kcal/day'],
         ['Body\'s Metabolic Age', f"{assessment['metabolic_age']}", 'years'],
     ]
@@ -619,7 +619,7 @@ def generate_general_consultation_pdf(assessment):
     # Body Fat & Muscle spread across the body, plain language
     elements.append(Paragraph("HOW FAT & MUSCLE ARE SPREAD ACROSS YOUR BODY", heading_style))
     distribution_data = [
-        ['Body Area', 'Fat (%)', 'Muscle (%)'],
+        ['Body Area', 'Subcutaneous Fat (%)', 'Muscle Mass (%)'],
         ['Whole Body', f"{assessment['whole_body_subcutaneous']}", f"{assessment['whole_body_muscle']}"],
         ['Trunk (Core)', f"{assessment['trunk_subcutaneous']}", f"{assessment['trunk_muscle']}"],
         ['Arms', f"{assessment['arms_subcutaneous']}", f"{assessment['arms_muscle']}"],
@@ -742,7 +742,7 @@ def generate_general_consultation_pdf(assessment):
     if metabolic_age < age:
         tips.append("\u2022 \u2713 Great sign - your body is functioning like someone younger. Keep up the good habits!")
     elif metabolic_age > age:
-        tips.append("\u2022 \u26a0 Regular physical activity, better sleep, and balanced nutrition can help improve this over time.")
+        tips.append("\u2022 Regular physical activity, better sleep, and balanced nutrition can help improve this over time.")
     else:
         tips.append("\u2022 Your metabolic age matches your actual age.")
 
