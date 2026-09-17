@@ -153,7 +153,7 @@ def send_general_consultation_email(to_email, client_name, pdf_path):
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ECF0F1;">
                     <p style="margin-bottom: 5px;"><strong>Best regards,</strong></p>
                     <p style="margin: 0; color: #3498DB; font-weight: bold;">
-                        Afreen Rihana H, M.Sc.CN (SRIHER), CDE(IDF), CSN(BARCA INNOVATION HUB)
+                        Afreen Rihana H, M.Sc.CN (SRIHER), CDE(IDF), CSN(BARCA INNOVATION HUB), ISAK Level-1 Trainer
                     </p>
                     <p style="margin: 0; color: #3498DB; font-weight: bold;">
                         Founder & Chief Nutritionist
