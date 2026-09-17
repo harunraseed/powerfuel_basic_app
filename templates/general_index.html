@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Body Composition Assessment - PowerFuel</title>
+    <title>General Basic Consultation - PowerFuel</title>
     <style>
         * {
             margin: 0;
@@ -74,7 +74,7 @@
             color: #2C3E50;
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 3px solid #3498DB;
+            border-bottom: 3px solid #27AE60;
         }
 
         .form-grid {
@@ -107,8 +107,8 @@
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #3498DB;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            border-color: #27AE60;
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
         }
 
         .subsection {
@@ -146,13 +146,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #3498DB 0%, #2980B9 100%);
+            background: linear-gradient(135deg, #27AE60 0%, #1E8449 100%);
             color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+            box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
         }
 
         .btn-success {
@@ -217,7 +217,7 @@
 
         .spinner {
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498DB;
+            border-top: 4px solid #27AE60;
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -293,8 +293,8 @@
         }
 
         .info-box {
-            background: #E8F4F8;
-            border-left: 4px solid #3498DB;
+            background: #E8F8F0;
+            border-left: 4px solid #27AE60;
             padding: 15px;
             margin: 20px 0;
             border-radius: 5px;
@@ -330,13 +330,12 @@
             <div class="header-left">
                 <img src="{{ url_for('static', filename='images/logo_white_bg.png') }}" alt="PowerFuel Logo" class="logo">
                 <div>
-                    <h1>🏃‍♂️ Body Composition Assessment</h1>
-                    <p>Marathon Runners & Athletes Performance Analysis</p>
+                    <h1>🌿 General Basic Consultation</h1>
+                    <p>Health & Wellness Body Composition Check-up</p>
                     <p style="font-size: 0.9em; margin-top: 10px;">PowerFuel - The Nutrition Hub</p>
                 </div>
             </div>
             <div>
-                <a href="/general-form" style="display: inline-block; padding: 12px 25px; background: #27AE60; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; margin-right: 10px;">🌿 General Consultation</a>
                 <a href="/dashboard" style="display: inline-block; padding: 12px 25px; background: white; color: #2C3E50; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; margin-right: 10px;">📊 Dashboard</a>
                 <a href="/logout" style="display: inline-block; padding: 12px 25px; background: #95A5A6; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">🚪 Logout</a>
             </div>
@@ -350,6 +349,8 @@
             </div>
 
             <form id="assessmentForm">
+                <input type="hidden" id="assessmentType" name="assessmentType" value="general">
+
                 <!-- Personal Information Section -->
                 <div class="section">
                     <h2 class="section-title">Personal Information</h2>
@@ -388,14 +389,14 @@
                 <!-- Body Measurements Section -->
                 <div class="section">
                     <h2 class="section-title">Body Composition Measurements</h2>
-                    
+
                     <div class="info-box" id="referenceValues" style="display: none;">
                         <p><strong>📊 Reference Values:</strong></p>
                         <p id="bmiReference"></p>
                         <p id="bodyFatReference"></p>
                         <p id="visceralFatReference"></p>
                     </div>
-                    
+
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="weight">Weight (kg) <span class="required">*</span></label>
@@ -427,7 +428,7 @@
                 <!-- Subcutaneous Fat vs Muscle Mass Section -->
                 <div class="section">
                     <h2 class="section-title">Subcutaneous Fat vs Muscle Mass Distribution</h2>
-                    
+
                     <div class="subsection">
                         <h3 class="subsection-title">Whole Body</h3>
                         <div class="form-grid">
@@ -486,12 +487,12 @@
                 </div>
 
                 <div class="info-box">
-                    <p><strong>📋 Note:</strong> All fields are required for accurate body composition analysis.</p>
-                    <p><strong>🏃‍♂️ For Athletes:</strong> Regular monitoring helps optimize performance and recovery.</p>
+                    <p><strong>📋 Note:</strong> All fields are required for an accurate health check-up report.</p>
+                    <p><strong>🌿 General Wellness:</strong> This report gives you a simple, easy-to-understand summary of your current health.</p>
                 </div>
 
                 <div class="button-group">
-                    <button type="submit" class="btn btn-primary">💾 Save Assessment</button>
+                    <button type="submit" class="btn btn-primary">💾 Save Consultation</button>
                     <button type="button" id="generatePdfBtn" class="btn btn-secondary" disabled>📄 Generate PDF</button>
                     <button type="button" id="sendEmailBtn" class="btn btn-success" disabled>📧 Send to Client</button>
                 </div>
@@ -517,12 +518,12 @@
 
         document.getElementById('assessmentForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             showLoading(true);
-            
+
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
-            
+
             try {
                 const response = await fetch('/api/save-assessment', {
                     method: 'POST',
@@ -531,12 +532,12 @@
                     },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     currentAssessmentId = result.assessment_id;
-                    showPopup('✅', 'Assessment Saved Successfully!', 'success');
+                    showPopup('✅', 'Consultation Saved Successfully!', 'success');
                     document.getElementById('generatePdfBtn').disabled = false;
                     document.getElementById('sendEmailBtn').disabled = false;
                 } else {
@@ -551,21 +552,21 @@
 
         document.getElementById('generatePdfBtn').addEventListener('click', async () => {
             if (!currentAssessmentId) {
-                showPopup('❌', 'Please save the assessment first', 'error');
+                showPopup('❌', 'Please save the consultation first', 'error');
                 return;
             }
-            
+
             showLoading(true);
-            
+
             try {
                 const response = await fetch(`/api/generate-pdf/${currentAssessmentId}`);
-                
+
                 if (response.ok) {
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `body_assessment_${currentAssessmentId}.pdf`;
+                    a.download = `general_consultation_${currentAssessmentId}.pdf`;
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
@@ -583,23 +584,23 @@
 
         document.getElementById('sendEmailBtn').addEventListener('click', async () => {
             if (!currentAssessmentId) {
-                showPopup('❌', 'Please save the assessment first', 'error');
+                showPopup('❌', 'Please save the consultation first', 'error');
                 return;
             }
-            
-            if (!confirm('Send assessment report to client via email?')) {
+
+            if (!confirm('Send the health & wellness report to client via email?')) {
                 return;
             }
-            
+
             showLoading(true);
-            
+
             try {
                 const response = await fetch(`/api/send-email/${currentAssessmentId}`, {
                     method: 'POST'
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     showPopup('✅', 'Email Sent Successfully!', 'success');
                 } else {
@@ -616,13 +617,13 @@
             const overlay = document.getElementById('popupOverlay');
             const iconEl = document.getElementById('popupIcon');
             const messageEl = document.getElementById('popupMessage');
-            
+
             iconEl.textContent = icon;
             iconEl.className = `popup-icon ${type === 'success' ? 'popup-success' : 'popup-error'}`;
             messageEl.textContent = message;
-            
+
             overlay.classList.add('show');
-            
+
             setTimeout(() => {
                 overlay.classList.remove('show');
             }, 3000);
@@ -636,7 +637,7 @@
         function calculateBMI() {
             const weight = parseFloat(document.getElementById('weight').value);
             const height = parseFloat(document.getElementById('height').value);
-            
+
             if (weight && height) {
                 const bmi = weight / Math.pow(height / 100, 2);
                 document.getElementById('bmi').value = bmi.toFixed(1);
@@ -654,14 +655,14 @@
                 const response = await fetch(`/api/reference-values/${gender}`);
                 const refs = await response.json();
 
-                document.getElementById('bmiReference').innerHTML = 
-                    `<strong>BMI:</strong> Normal: ${refs.bmi.normal.min}-${refs.bmi.normal.max} | Athletes: ${refs.bmi.athlete.min}-${refs.bmi.athlete.max}`;
-                
-                document.getElementById('bodyFatReference').innerHTML = 
-                    `<strong>Body Fat:</strong> Normal: ${refs.bodyFat.normal.min}-${refs.bodyFat.normal.max}% | Athletes: ${refs.bodyFat.athlete.min}-${refs.bodyFat.athlete.max}%`;
-                
-                document.getElementById('visceralFatReference').innerHTML = 
-                    `<strong>Visceral Fat:</strong> Normal: ${refs.visceralFat.normal.min}-${refs.visceralFat.normal.max} | Athletes: ${refs.visceralFat.athlete.min}-${refs.visceralFat.athlete.max}`;
+                document.getElementById('bmiReference').innerHTML =
+                    `<strong>BMI:</strong> Healthy range: ${refs.bmi.normal.min}-${refs.bmi.normal.max}`;
+
+                document.getElementById('bodyFatReference').innerHTML =
+                    `<strong>Body Fat:</strong> Healthy range: ${refs.bodyFat.normal.min}-${refs.bodyFat.normal.max}%`;
+
+                document.getElementById('visceralFatReference').innerHTML =
+                    `<strong>Visceral Fat:</strong> Healthy range: ${refs.visceralFat.normal.min}-${refs.visceralFat.normal.max}`;
 
                 document.getElementById('referenceValues').style.display = 'block';
             } catch (error) {

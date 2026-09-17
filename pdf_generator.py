@@ -528,3 +528,263 @@ def generate_body_composition_pdf(assessment):
     doc.build(elements)
     
     return filename
+
+
+def generate_general_consultation_pdf(assessment):
+    """Generate a simple, easy-to-understand PDF report for the general basic consultation.
+    Written for a general audience - no athlete/marathon-specific language."""
+
+    reports_dir = '/tmp'
+    os.makedirs(reports_dir, exist_ok=True)
+
+    filename = f"{reports_dir}/general_consultation_{assessment['id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
+    logo_image = get_logo_path()
+
+    doc = SimpleDocTemplate(filename, pagesize=A4,
+                           rightMargin=72, leftMargin=72,
+                           topMargin=72, bottomMargin=18)
+    doc.canvasmaker = lambda *args, **kwargs: WatermarkCanvas(*args, logo_path=logo_image, **kwargs)
+
+    elements = []
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        'GeneralTitle', parent=styles['Heading1'], fontSize=22,
+        textColor=colors.HexColor('#2C3E50'), spaceAfter=15,
+        alignment=TA_CENTER, fontName='Helvetica-Bold'
+    )
+    heading_style = ParagraphStyle(
+        'GeneralHeading', parent=styles['Heading2'], fontSize=14,
+        textColor=colors.HexColor('#34495E'), spaceAfter=8, spaceBefore=8,
+        fontName='Helvetica-Bold'
+    )
+    normal_style = styles['Normal']
+
+    elements.append(Paragraph("GENERAL HEALTH & WELLNESS REPORT", title_style))
+    elements.append(Spacer(1, 0.1*inch))
+    elements.append(Paragraph(f"<b>Date:</b> {datetime.now().strftime('%B %d, %Y')}", normal_style))
+    elements.append(Spacer(1, 0.15*inch))
+
+    # Personal Information
+    elements.append(Paragraph("PERSONAL INFORMATION", heading_style))
+    personal_data = [
+        ['Name:', assessment['name']],
+        ['Age:', f"{assessment['age']} years"],
+        ['Gender:', assessment['gender'].capitalize()],
+        ['Height:', f"{assessment['height_cm']} cm"],
+        ['Mobile:', assessment['mobile']],
+        ['Email:', assessment['email']],
+    ]
+    personal_table = Table(personal_data, colWidths=[2*inch, 4*inch])
+    personal_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#2C3E50')),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(personal_table)
+    elements.append(Spacer(1, 0.15*inch))
+
+    # Key Health Numbers (simple, everyday language)
+    elements.append(Paragraph("YOUR KEY HEALTH NUMBERS", heading_style))
+    measurements_data = [
+        ['Measurement', 'Your Value', 'Unit'],
+        ['Weight', f"{assessment['weight_kg']}", 'kg'],
+        ['BMI (Body Mass Index)', f"{assessment['bmi']}", 'kg/m²'],
+        ['Body Fat', f"{assessment['body_fat_percent']}", '%'],
+        ['Belly (Visceral) Fat', f"{assessment['visceral_fat_percent']}", '%'],
+        ['Calories Burnt at Rest', f"{assessment['resting_metabolism']}", 'kcal/day'],
+        ['Body\'s Metabolic Age', f"{assessment['metabolic_age']}", 'years'],
+    ]
+    measurements_table = Table(measurements_data, colWidths=[2.5*inch, 1.5*inch, 1.5*inch])
+    measurements_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498DB')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, -1), 10),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#ECF0F1')]),
+    ]))
+    elements.append(measurements_table)
+    elements.append(Spacer(1, 0.15*inch))
+
+    # Body Fat & Muscle spread across the body, plain language
+    elements.append(Paragraph("HOW FAT & MUSCLE ARE SPREAD ACROSS YOUR BODY", heading_style))
+    distribution_data = [
+        ['Body Area', 'Fat (%)', 'Muscle (%)'],
+        ['Whole Body', f"{assessment['whole_body_subcutaneous']}", f"{assessment['whole_body_muscle']}"],
+        ['Trunk (Core)', f"{assessment['trunk_subcutaneous']}", f"{assessment['trunk_muscle']}"],
+        ['Arms', f"{assessment['arms_subcutaneous']}", f"{assessment['arms_muscle']}"],
+        ['Legs', f"{assessment['legs_subcutaneous']}", f"{assessment['legs_muscle']}"],
+    ]
+    distribution_table = Table(distribution_data, colWidths=[2*inch, 2*inch, 2*inch])
+    distribution_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2ECC71')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, -1), 10),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#ECF0F1')]),
+    ]))
+    elements.append(distribution_table)
+    elements.append(Spacer(1, 0.15*inch))
+
+    elements.append(PageBreak())
+
+    gender = assessment['gender'].lower()
+    age = assessment['age']
+    bmi = assessment['bmi']
+    body_fat = assessment['body_fat_percent']
+    visceral_fat = assessment['visceral_fat_percent']
+    metabolic_age = assessment['metabolic_age']
+
+    if age >= 18:
+        if bmi < 18.5:
+            bmi_category = "Underweight"
+            bmi_inference = "A little below the healthy range - a nutrient-rich diet can help you reach a healthier weight."
+        elif bmi < 23.0:
+            bmi_category = "Normal"
+            bmi_inference = "Great news - your weight is in a healthy range for your height."
+        elif bmi < 25.0:
+            bmi_category = "Overweight"
+            bmi_inference = "Slightly above the healthy range - small daily changes can help bring this down."
+        elif bmi < 30.0:
+            bmi_category = "Obese I"
+            bmi_inference = "Higher than the healthy range - a structured plan for diet and activity is recommended."
+        else:
+            bmi_category = "Obese II"
+            bmi_inference = "Well above the healthy range - please consider professional guidance for weight management."
+    else:
+        bmi_category = "N/A"
+        bmi_inference = "BMI categories shown here apply to adults (18 years and above)."
+
+    if gender == 'male':
+        if body_fat < 10:
+            bf_status = "Low - below the typical healthy range"
+        elif body_fat <= 20:
+            bf_status = "Healthy range"
+        elif body_fat <= 25:
+            bf_status = "Above healthy range"
+        else:
+            bf_status = "High - lifestyle changes recommended"
+    else:
+        if body_fat < 20:
+            bf_status = "Low - below the typical healthy range"
+        elif body_fat <= 30:
+            bf_status = "Healthy range"
+        elif body_fat <= 35:
+            bf_status = "Above healthy range"
+        else:
+            bf_status = "High - lifestyle changes recommended"
+
+    if visceral_fat <= 9.5:
+        vf_status = "Healthy level"
+        vf_inference = "Your belly fat level is healthy - good for long-term heart health."
+    elif visceral_fat <= 14.5:
+        vf_status = "Slightly high"
+        vf_inference = "A bit on the higher side - regular activity and mindful eating can help."
+    else:
+        vf_status = "High"
+        vf_inference = "On the higher side - we recommend focusing on this with diet and lifestyle changes."
+
+    elements.append(Paragraph("WHAT YOUR NUMBERS MEAN", heading_style))
+
+    inference_data = [
+        ['Measurement', 'Result', 'What It Means'],
+        ['BMI', f"{bmi} kg/m\u00b2\n{bmi_category}", bmi_inference],
+        ['Body Fat %', f"{body_fat}%", bf_status],
+        ['Belly Fat', f"{visceral_fat}", f"{vf_status} - {vf_inference}"],
+    ]
+
+    wrapped_inference_data = [inference_data[0]]
+    cell_style = ParagraphStyle('GeneralCellStyle', parent=styles['Normal'], fontSize=8, leading=10)
+    for row in inference_data[1:]:
+        wrapped_row = [row[0], row[1], Paragraph(row[2], cell_style)]
+        wrapped_inference_data.append(wrapped_row)
+
+    inference_table = Table(wrapped_inference_data, colWidths=[1.5*inch, 1.3*inch, 3.7*inch])
+    inference_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498DB')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#ECF0F1')]),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+    ]))
+    elements.append(inference_table)
+    elements.append(Spacer(1, 0.3*inch))
+
+    # Simple wellness tips (no athlete language)
+    tips = []
+    tips.append(f"\u2022 Your body's metabolic age is {metabolic_age} years, compared to your actual age of {age} years.")
+    if metabolic_age < age:
+        tips.append("\u2022 \u2713 Great sign - your body is functioning like someone younger. Keep up the good habits!")
+    elif metabolic_age > age:
+        tips.append("\u2022 \u26a0 Regular physical activity, better sleep, and balanced nutrition can help improve this over time.")
+    else:
+        tips.append("\u2022 Your metabolic age matches your actual age.")
+
+    tips.append("\u2022 Aim for at least 30 minutes of physical activity most days of the week.")
+    tips.append("\u2022 Include more fruits, vegetables, whole grains, and lean protein in your daily meals.")
+    tips.append("\u2022 Stay hydrated and aim for 7-8 hours of restful sleep every night.")
+    tips.append("\u2022 Small, consistent lifestyle changes lead to lasting health improvements.")
+
+    tips_text = "<br/>".join(tips)
+
+    tips_heading_style = ParagraphStyle(
+        'GeneralTipsHeading', parent=styles['Heading2'], fontSize=13,
+        textColor=colors.HexColor('#27AE60'), spaceAfter=10, spaceBefore=10,
+        fontName='Helvetica-Bold'
+    )
+    elements.append(Paragraph("💡 🌿 Simple Tips for a Healthier You:", tips_heading_style))
+    elements.append(Paragraph(
+        tips_text,
+        ParagraphStyle('GeneralTips', parent=styles['Normal'], fontSize=9,
+                      leading=16, leftIndent=15, rightIndent=10, spaceAfter=8,
+                      textColor=colors.HexColor('#2C3E50'))
+    ))
+    elements.append(Spacer(1, 0.4*inch))
+
+    notes_style = ParagraphStyle(
+        'GeneralNotes', parent=styles['Normal'], fontSize=9,
+        textColor=colors.HexColor('#7F8C8D'), alignment=TA_LEFT
+    )
+    elements.append(Paragraph(
+        "<b>Note:</b> This report gives you a simple snapshot of your current health and body composition. "
+        "It is not a medical diagnosis. For a personalized nutrition and wellness plan, feel free to reach out "
+        "to us by call or WhatsApp at +91-7397442544.",
+        notes_style
+    ))
+    elements.append(Spacer(1, 0.2*inch))
+
+    elements.append(Paragraph(
+        "<i>Generated by PowerFuel - The Nutrition Hub</i>",
+        ParagraphStyle('GeneralBranding', parent=styles['Normal'], fontSize=8,
+                      textColor=colors.HexColor('#95A5A6'), alignment=TA_CENTER)
+    ))
+
+    doc.build(elements)
+
+    return filename

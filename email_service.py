@@ -108,3 +108,100 @@ def send_assessment_email(to_email, client_name, pdf_path):
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
         raise e
+
+
+def send_general_consultation_email(to_email, client_name, pdf_path):
+    """Send the general health & wellness report via email, written for a general audience"""
+
+    from_email = Config.MAIL_USERNAME
+    password = Config.MAIL_PASSWORD
+
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = 'Your General Health & Wellness Report - PowerFuel'
+
+    body = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #2C3E50; border-bottom: 3px solid #3498DB; padding-bottom: 10px;">
+                    General Health & Wellness Report
+                </h2>
+
+                <p>Dear {client_name},</p>
+
+                <p>Thank you for taking the time to complete your health consultation with us!</p>
+
+                <p>Please find your personalized health report attached to this email. It gives you a simple
+                overview of:</p>
+
+                <ul style="background-color: #ECF0F1; padding: 20px; border-radius: 5px;">
+                    <li>Your weight, BMI, and body fat percentage</li>
+                    <li>A simple breakdown of fat and muscle across your body</li>
+                    <li>Easy-to-understand tips to help you stay healthy</li>
+                </ul>
+
+                <p style="background-color: #E8F8F0; padding: 15px; border-left: 4px solid #27AE60; margin: 20px 0;">
+                    <strong>Remember:</strong> Small, consistent changes to your daily routine - like eating
+                    balanced meals, staying active, and getting enough sleep - can make a big difference to
+                    your long-term health and wellbeing.
+                </p>
+
+                <p>If you'd like personalized guidance or have any questions about your report, feel free to reach out to us via call or WhatsApp at +91-7397442544.</p>
+
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ECF0F1;">
+                    <p style="margin-bottom: 5px;"><strong>Best regards,</strong></p>
+                    <p style="margin: 0; color: #3498DB; font-weight: bold;">
+                        Afreen Rihana H, M.Sc.CN (SRIHER), CDE(IDF), CSN(BARCA INNOVATION HUB)
+                    </p>
+                    <p style="margin: 0; color: #3498DB; font-weight: bold;">
+                        Founder & Chief Nutritionist
+                    </p>
+                    <p style="margin: 5px 0; font-size: 16px; font-weight: bold; color: #2C3E50;">
+                        PowerFuel - The Nutrition Hub
+                    </p>
+                    <p style="margin: 5px 0; font-size: 12px; color: #7F8C8D;">
+                        Email: powerfuel.thenutritionhub@gmail.com
+                    </p>
+                </div>
+
+                <div style="margin-top: 20px; padding: 15px; background-color: #F8F9FA;
+                           border-radius: 5px; font-size: 11px; color: #7F8C8D;">
+                    <p style="margin: 0;"><em>This email and its attachments contain confidential
+                    health information. If you received this email in error, please notify us immediately
+                    and delete it.</em></p>
+                </div>
+            </div>
+        </body>
+    </html>
+    """
+
+    msg.attach(MIMEText(body, 'html'))
+
+    if os.path.exists(pdf_path):
+        with open(pdf_path, 'rb') as f:
+            pdf_attachment = MIMEApplication(f.read(), _subtype='pdf')
+            pdf_attachment.add_header('Content-Disposition', 'attachment',
+                                     filename=os.path.basename(pdf_path))
+            msg.attach(pdf_attachment)
+
+    try:
+        server = smtplib.SMTP(Config.MAIL_SERVER, Config.MAIL_PORT)
+        server.starttls()
+        server.login(from_email, password)
+        server.send_message(msg)
+        server.quit()
+        print(f"Email sent successfully to {to_email}")
+
+        try:
+            if os.path.exists(pdf_path):
+                os.remove(pdf_path)
+                print(f"Cleaned up temporary file: {pdf_path}")
+        except Exception as cleanup_error:
+            print(f"Warning: Could not clean up temporary file: {cleanup_error}")
+
+        return True
+    except Exception as e:
+        print(f"Failed to send email: {str(e)}")
+        raise e

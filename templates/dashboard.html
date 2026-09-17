@@ -485,6 +485,35 @@
             background: #8E44AD;
         }
 
+        .type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .type-badge.race_day {
+            background: #EBF5FB;
+            color: #2980B9;
+        }
+
+        .type-badge.general {
+            background: #EAFAF1;
+            color: #1E8449;
+        }
+
+        .type-filter-btn {
+            background: #ECF0F1;
+            color: #2C3E50;
+            border: 2px solid transparent;
+        }
+
+        .type-filter-btn.active {
+            background: #3498DB;
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -522,7 +551,8 @@
                 <h1>📊 Assessment Dashboard</h1>
             </div>
             <div class="nav-buttons">
-                <a href="/form" class="btn btn-primary">➕ New Assessment</a>
+                <a href="/form" class="btn btn-primary">🏃‍♂️ Race Day Analysis</a>
+                <a href="/general-form" class="btn" style="background: linear-gradient(135deg, #27AE60 0%, #1E8449 100%); color: white;">🌿 General Consultation</a>
                 <a href="/logout" class="btn" style="background: #95A5A6; color: white;">🚪 Logout</a>
             </div>
         </div>
@@ -552,6 +582,12 @@
                 <button onclick="clearSearch()" class="btn" style="background: #95A5A6; color: white;">Clear</button>
             </div>
 
+            <div class="search-section" id="typeFilterSection">
+                <button onclick="filterByType('all')" class="btn-small type-filter-btn active" data-type="all">All</button>
+                <button onclick="filterByType('race_day')" class="btn-small type-filter-btn" data-type="race_day">🏃‍♂️ Race Day Analysis</button>
+                <button onclick="filterByType('general')" class="btn-small type-filter-btn" data-type="general">🌿 General Consultation</button>
+            </div>
+
             <div class="loading" id="loading">
                 <div class="spinner"></div>
                 <p>Loading assessments...</p>
@@ -564,13 +600,14 @@
                             <th>Name</th>
                             <th>Age</th>
                             <th>Gender</th>
+                            <th>Type</th>
                             <th>Email Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="assessmentsBody">
                         <tr>
-                            <td colspan="5" class="no-data">No assessments found</td>
+                            <td colspan="6" class="no-data">No assessments found</td>
                         </tr>
                     </tbody>
                 </table>
@@ -590,7 +627,7 @@
     <div id="inferenceModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>🏃‍♂️ Runner Assessment & Inference</h2>
+                <h2 id="inferenceModalTitle">🏃‍♂️ Runner Assessment & Inference</h2>
                 <span class="close" onclick="closeInferenceModal()">&times;</span>
             </div>
             <div class="modal-body" id="inferenceContent">
@@ -604,6 +641,7 @@
 
     <script>
         let allAssessments = [];
+        let currentTypeFilter = 'all';
 
         function showMessage(message, type) {
             const messageDiv = document.getElementById('message');
@@ -627,7 +665,7 @@
 
                 if (result.success) {
                     allAssessments = result.data;
-                    displayAssessments(result.data);
+                    applyTypeFilter();
                     updateStats(result.data);
                 } else {
                     showMessage('Failed to load assessments', 'error');
@@ -639,11 +677,26 @@
             }
         }
 
+        function filterByType(type) {
+            currentTypeFilter = type;
+            document.querySelectorAll('.type-filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
+            applyTypeFilter();
+        }
+
+        function applyTypeFilter() {
+            const filtered = currentTypeFilter === 'all' ?
+                allAssessments :
+                allAssessments.filter(a => (a.assessment_type || 'race_day') === currentTypeFilter);
+            displayAssessments(filtered);
+        }
+
         function displayAssessments(assessments) {
             const tbody = document.getElementById('assessmentsBody');
             
             if (!assessments || assessments.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="no-data">No assessments found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No assessments found</td></tr>';
                 return;
             }
 
@@ -652,6 +705,9 @@
                     <td><strong>${a.name}</strong></td>
                     <td>${a.age}</td>
                     <td>${a.gender.charAt(0).toUpperCase() + a.gender.slice(1)}</td>
+                    <td>
+                        <span class="type-badge ${a.assessment_type || 'race_day'}">${(a.assessment_type || 'race_day') === 'general' ? '🌿 General' : '🏃‍♂️ Race Day'}</span>
+                    </td>
                     <td>
                         ${a.email_sent ? 
                             `<span class="email-status email-sent" title="Email sent on ${a.email_sent_at ? new Date(a.email_sent_at).toLocaleString() : 'Unknown'}">✅</span>` : 
@@ -806,6 +862,11 @@
                 if (result.success) {
                     const assessment = result.assessment;
                     const inference = result.inference;
+                    const isGeneral = (assessment.assessment_type || 'race_day') === 'general';
+
+                    document.getElementById('inferenceModalTitle').textContent = isGeneral ?
+                        '🌿 General Consultation & Inference' :
+                        '🏃‍♂️ Runner Assessment & Inference';
                     
                     content.innerHTML = `
                         <div class="inference-section">
@@ -912,7 +973,7 @@
                         </div>
 
                         <div class="performance-notes" style="margin-top: 20px;">
-                            <h4>🏃‍♂️ Performance Notes for Runners/Marathon Athletes:</h4>
+                            <h4>${isGeneral ? '🌿 Simple Tips for a Healthier You:' : '🏃‍♂️ Performance Notes for Runners/Marathon Athletes:'}</h4>
                             <ul style="margin-top: 10px; line-height: 1.8; list-style-type: disc; padding-left: 25px;">
                                 ${Array.isArray(inference.performance_notes) ? 
                                     inference.performance_notes.map(note => `<li>${note.replace(/^[•●■◆▪]-?\s*/, '')}</li>`).join('') :
@@ -924,10 +985,17 @@
                         <div style="margin-top: 20px; padding: 15px; background: #E8F4F8; border-radius: 5px; font-size: 0.9em;">
                             <strong>💡 Recommendations:</strong>
                             <ul style="margin: 10px 0; padding-left: 20px;">
+                                ${isGeneral ? `
+                                <li>Aim for at least 30 minutes of physical activity most days of the week</li>
+                                <li>Include more fruits, vegetables, whole grains, and lean protein in your meals</li>
+                                <li>Stay hydrated and get 7-8 hours of restful sleep every night</li>
+                                <li>Consider a follow-up check-up to track your progress over time</li>
+                                ` : `
                                 <li>Maintain regular body composition monitoring to track progress</li>
                                 <li>Focus on balanced nutrition tailored for endurance athletes</li>
                                 <li>Consider consultation with sports nutritionist for personalized guidance</li>
                                 <li>Monitor recovery and adjust training load based on body composition changes</li>
+                                `}
                             </ul>
                         </div>
                     `;

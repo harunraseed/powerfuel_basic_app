@@ -23,14 +23,21 @@ CREATE TABLE IF NOT EXISTS body_assessments (
     arms_muscle DECIMAL(4, 1) NOT NULL,
     legs_subcutaneous DECIMAL(4, 1) NOT NULL,
     legs_muscle DECIMAL(4, 1) NOT NULL,
+    assessment_type VARCHAR(20) DEFAULT 'race_day',
     email_sent BOOLEAN DEFAULT FALSE,
     email_sent_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
 
+-- Migration: add assessment_type to an existing table (safe to re-run)
+ALTER TABLE body_assessments ADD COLUMN IF NOT EXISTS assessment_type VARCHAR(20) DEFAULT 'race_day';
+
 -- Create index on email for faster lookups
 CREATE INDEX IF NOT EXISTS idx_body_assessments_email ON body_assessments(email);
+
+-- Create index on assessment_type for faster filtering between report types
+CREATE INDEX IF NOT EXISTS idx_body_assessments_type ON body_assessments(assessment_type);
 
 -- Create index on created_at for sorting
 CREATE INDEX IF NOT EXISTS idx_body_assessments_created_at ON body_assessments(created_at DESC);

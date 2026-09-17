@@ -4,8 +4,8 @@ from config import Config
 from supabase import create_client
 import os
 from datetime import datetime
-from pdf_generator import generate_body_composition_pdf
-from email_service import send_assessment_email
+from pdf_generator import generate_body_composition_pdf, generate_general_consultation_pdf
+from email_service import send_assessment_email, send_general_consultation_email
 import math
 
 app = Flask(__name__)
@@ -300,6 +300,89 @@ def generate_runner_inference(assessment):
         'performance_notes': performance_notes
     }
 
+def generate_general_inference(assessment):
+    """Generate simple, everyday-friendly inference for the general consultation report"""
+    bmi = assessment['bmi']
+    age = assessment['age']
+    gender = assessment['gender']
+    body_fat = assessment['body_fat_percent']
+    visceral_fat = assessment['visceral_fat_percent']
+    metabolic_age = assessment['metabolic_age']
+
+    bmi_category = get_bmi_category_asian_pacific(bmi, age)
+    body_fat_status = get_body_fat_status(body_fat, gender)
+    visceral_inference = get_visceral_fat_inference(visceral_fat)
+
+    muscle_distribution = {
+        'whole_body': {
+            'subcutaneous': assessment['whole_body_subcutaneous'],
+            'muscle': assessment['whole_body_muscle'],
+            'ratio': analyze_muscle_fat_ratio(assessment['whole_body_subcutaneous'], assessment['whole_body_muscle'])[0],
+            'suggestion': analyze_muscle_fat_ratio(assessment['whole_body_subcutaneous'], assessment['whole_body_muscle'])[1]
+        },
+        'trunk': {
+            'subcutaneous': assessment['trunk_subcutaneous'],
+            'muscle': assessment['trunk_muscle'],
+            'ratio': analyze_muscle_fat_ratio(assessment['trunk_subcutaneous'], assessment['trunk_muscle'])[0],
+            'suggestion': analyze_muscle_fat_ratio(assessment['trunk_subcutaneous'], assessment['trunk_muscle'])[1]
+        },
+        'arms': {
+            'subcutaneous': assessment['arms_subcutaneous'],
+            'muscle': assessment['arms_muscle'],
+            'ratio': analyze_muscle_fat_ratio(assessment['arms_subcutaneous'], assessment['arms_muscle'])[0],
+            'suggestion': analyze_muscle_fat_ratio(assessment['arms_subcutaneous'], assessment['arms_muscle'])[1]
+        },
+        'legs': {
+            'subcutaneous': assessment['legs_subcutaneous'],
+            'muscle': assessment['legs_muscle'],
+            'ratio': analyze_muscle_fat_ratio(assessment['legs_subcutaneous'], assessment['legs_muscle'])[0],
+            'suggestion': analyze_muscle_fat_ratio(assessment['legs_subcutaneous'], assessment['legs_muscle'])[1]
+        }
+    }
+
+    # General wellness notes written in plain, non-athlete language
+    wellness_notes = []
+
+    if bmi < 18.5:
+        wellness_notes.append("⚠️ Your BMI is a little below the healthy range. A balanced, nutrient-rich diet can help you reach a healthier weight.")
+    elif bmi < 23:
+        wellness_notes.append("✓ Your BMI is within a healthy range. Keep up your current habits!")
+    elif bmi < 25:
+        wellness_notes.append("⚠️ Your BMI is slightly above the healthy range. Small lifestyle changes can help bring it back to normal.")
+    else:
+        wellness_notes.append("⚠️ Your BMI suggests it would help to focus on weight management for your overall health.")
+
+    if visceral_fat <= 9.5:
+        wellness_notes.append("✓ Your visceral (belly) fat level is healthy - great for your heart health.")
+    else:
+        wellness_notes.append("⚠️ Your visceral (belly) fat is a bit high. Regular activity and mindful eating can help lower it over time.")
+
+    if metabolic_age < age:
+        wellness_notes.append(f"✓ Your body's metabolic age ({metabolic_age}) is younger than your actual age - a good sign of overall fitness.")
+    elif metabolic_age > age:
+        wellness_notes.append(f"⚠️ Your body's metabolic age ({metabolic_age}) is higher than your actual age. Regular exercise and better sleep/nutrition can help improve this.")
+    else:
+        wellness_notes.append("Your metabolic age matches your actual age.")
+
+    if gender.lower() == 'male':
+        if body_fat <= 20:
+            wellness_notes.append("✓ Your body fat percentage is within a healthy range.")
+        else:
+            wellness_notes.append("⚠️ Reducing body fat slightly can improve your overall health and energy levels.")
+    else:
+        if body_fat <= 30:
+            wellness_notes.append("✓ Your body fat percentage is within a healthy range.")
+        else:
+            wellness_notes.append("⚠️ Reducing body fat slightly can improve your overall health and energy levels.")
+
+    return {
+        'bmi_category': bmi_category,
+        'body_fat_status': body_fat_status,
+        'visceral_inference': visceral_inference,
+        'muscle_distribution': muscle_distribution,
+        'performance_notes': wellness_notes
+    }
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'logged_in' in session:
@@ -333,6 +416,11 @@ def index():
 @login_required
 def form():
     return render_template('index.html')
+
+@app.route('/general-form')
+@login_required
+def general_form():
+    return render_template('general_index.html')
 
 @app.route('/dashboard')
 @login_required
@@ -393,6 +481,7 @@ def save_assessment():
             'arms_muscle': float(data['armsMuscle']),
             'legs_subcutaneous': float(data['legsSubcutaneous']),
             'legs_muscle': float(data['legsMuscle']),
+            'assessment_type': data.get('assessmentType', 'race_day'),
             'created_at': datetime.now().isoformat()
         }
         
@@ -431,8 +520,11 @@ def generate_pdf(assessment_id):
         
         assessment = result.data[0]
         
-        # Generate PDF
-        pdf_path = generate_body_composition_pdf(assessment)
+        # Generate PDF (generalized report for general consultations)
+        if assessment.get('assessment_type') == 'general':
+            pdf_path = generate_general_consultation_pdf(assessment)
+        else:
+            pdf_path = generate_body_composition_pdf(assessment)
         
         return send_file(pdf_path, as_attachment=True, download_name=f"body_assessment_{assessment['name'].replace(' ', '_')}.pdf")
         
@@ -452,15 +544,21 @@ def send_email(assessment_id):
         
         assessment = result.data[0]
         
-        # Generate PDF
-        pdf_path = generate_body_composition_pdf(assessment)
-        
-        # Send email
-        send_assessment_email(
-            to_email=assessment['email'],
-            client_name=assessment['name'],
-            pdf_path=pdf_path
-        )
+        # Generate PDF and send generalized email/report for general consultations
+        if assessment.get('assessment_type') == 'general':
+            pdf_path = generate_general_consultation_pdf(assessment)
+            send_general_consultation_email(
+                to_email=assessment['email'],
+                client_name=assessment['name'],
+                pdf_path=pdf_path
+            )
+        else:
+            pdf_path = generate_body_composition_pdf(assessment)
+            send_assessment_email(
+                to_email=assessment['email'],
+                client_name=assessment['name'],
+                pdf_path=pdf_path
+            )
         
         # Update email_sent status in database
         supabase.table('body_assessments').update({
@@ -526,7 +624,10 @@ def get_inference(assessment_id):
             return jsonify({'success': False, 'message': 'Assessment not found'}), 404
         
         assessment = result.data[0]
-        inference = generate_runner_inference(assessment)
+        if assessment.get('assessment_type') == 'general':
+            inference = generate_general_inference(assessment)
+        else:
+            inference = generate_runner_inference(assessment)
         
         return jsonify({
             'success': True,
