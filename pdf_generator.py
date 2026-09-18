@@ -706,7 +706,7 @@ def generate_general_consultation_pdf(assessment):
         ['Measurement', 'Result', 'What It Means'],
         ['BMI', f"{bmi} kg/m\u00b2\n{bmi_category}", bmi_inference],
         ['Body Fat %', f"{body_fat}%", bf_status],
-        ['Belly Fat', f"{visceral_fat}", f"{vf_status} - {vf_inference}"],
+        ['Visceral Fat %', f"{visceral_fat}", f"{vf_status} - {vf_inference}"],
     ]
 
     wrapped_inference_data = [inference_data[0]]
